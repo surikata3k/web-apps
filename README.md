@@ -1,6 +1,7 @@
 # web-apps
 
 Col·lecció de petites aplicacions web de **surikata3k** que funcionen directament al navegador (HTML + CSS + JavaScript).
+
 🔗 **En línia:** [https://surikata3k.github.io/web-apps/](https://surikata3k.github.io/web-apps/)
 
 
