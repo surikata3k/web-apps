@@ -147,6 +147,7 @@ h2 {
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+    grid-auto-rows: 1fr;
     gap: 16px;
 }
 
@@ -158,6 +159,7 @@ h2 {
     align-items: flex-start;
     gap: 16px;
     padding: 20px;
+    min-height: 140px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -219,17 +221,6 @@ h2 {
 
 .desc { font-size: 0.92rem; color: var(--muted); }
 
-.badge {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #fff;
-    background: var(--accent);
-    padding: 2px 8px;
-    border-radius: 999px;
-}
-
 .go {
     margin-left: auto;
     align-self: center;
@@ -238,18 +229,6 @@ h2 {
     transition: transform 0.2s ease, color 0.2s ease;
 }
 .app:hover .go { transform: translateX(4px); color: var(--accent); }
-
-/* Targeta destacada: ocupa tota l'amplada en pantalles grans */
-.app-featured {
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 60%),
-        var(--surface);
-}
-@media (min-width: 640px) {
-    .app-featured { grid-column: 1 / -1; padding: 26px; }
-    .app-featured .icon { width: 56px; height: 56px; }
-    .app-featured .name { font-size: 1.25rem; }
-}
 
 /* ----- Peu ----- */
 footer {
