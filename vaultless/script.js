@@ -12,12 +12,12 @@ async function generateVaultless() {
     const len = parseInt(lengthInput.value);
     
     if (!master || !service) {
-        alert("Introduce Master Password y Servicio");
+        alert("Introdueix la contrasenya mestra i el servei");
         return;
     }
 
     if (isNaN(len) || len < 4) {
-        alert("La longitud mínima recomendada es 4");
+        alert("La longitud mínima recomanada és 4");
         return;
     }
 
@@ -26,35 +26,35 @@ async function generateVaultless() {
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     
-    // Configuración de sets
+    // Configuració dels conjunts
     const sets = [];
     if (document.getElementById('upper').checked) sets.push("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     if (document.getElementById('lower').checked) sets.push("abcdefghijklmnopqrstuvwxyz");
     if (document.getElementById('numbers').checked) sets.push("0123456789");
     if (document.getElementById('symbols').checked) sets.push("!@#$%^&*()_+");
 
-    if (sets.length === 0) return alert("Selecciona al menos un tipo de carácter");
-    if (len < sets.length) return alert(`Para cumplir las reglas, la longitud debe ser al menos ${sets.length}`);
+    if (sets.length === 0) return alert("Selecciona com a mínim un tipus de caràcter");
+    if (len < sets.length) return alert(`Per complir les regles, la longitud ha de ser com a mínim ${sets.length}`);
 
     let password = "";
     let allChars = sets.join("");
 
-    // 1. Asegurar un carácter de cada set seleccionado (Determinista)
-    // Usamos los primeros bytes del hash para elegir uno de cada set activo
+    // 1. Assegurar un caràcter de cada conjunt seleccionat (determinista)
+    // Fem servir els primers bytes del hash per triar-ne un de cada conjunt actiu
     for (let i = 0; i < sets.length; i++) {
         const charIndex = hashArray[i] % sets[i].length;
         password += sets[i].charAt(charIndex);
     }
 
-    // 2. Rellenar el resto de la longitud
+    // 2. Omplir la resta de la longitud
     for (let i = sets.length; i < len; i++) {
-        // Usamos el resto del hash para el relleno
+        // Fem servir la resta del hash per omplir
         const charIndex = (hashArray[i % hashArray.length] + i);
         password += allChars.charAt(charIndex % allChars.length);
     }
 
-    // Opcional: Podrías "barajar" la contraseña aquí de forma determinista si quisieras
-    // que el carácter obligatorio no esté siempre al principio, pero esto ya cumple tu requisito.
+    // Opcional: es podria "barrejar" la contrasenya aquí de manera determinista
+    // perquè el caràcter obligatori no fos sempre al principi, però això ja compleix el requisit.
 
     resultDisplay.innerText = password;
     updateStrengthBar(len);
@@ -78,9 +78,9 @@ generateBtn.addEventListener('click', generateVaultless);
 
 copyBtn.addEventListener('click', () => {
     const text = resultDisplay.innerText;
-    if (text === "Esperando datos...") return;
+    if (text === "Esperant dades...") return;
     navigator.clipboard.writeText(text);
     const originalText = copyBtn.innerText;
-    copyBtn.innerText = "¡Copiado!";
+    copyBtn.innerText = "Copiat!";
     setTimeout(() => copyBtn.innerText = originalText, 1500);
 });

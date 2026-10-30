@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PassForge — Generador de Contraseñas</title>
+  <title>PassForge — Generador de contrasenyes</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -472,28 +472,28 @@
       <div class="logo-icon">🔐</div>
       <h1>PassForge</h1>
     </div>
-    <p class="tagline">// contraseñas deterministas · 100% local · sin servidores</p>
+    <p class="tagline">// contrasenyes deterministes · 100% local · sense servidors</p>
   </header>
 
   <div class="card">
-    <!-- Contraseña maestra -->
+    <!-- Contrasenya mestra -->
     <div class="field">
-      <label><span class="dot"></span> Contraseña maestra</label>
+      <label><span class="dot"></span> Contrasenya mestra</label>
       <div class="input-wrap">
-        <input type="password" id="master" placeholder="Tu contraseña secreta…" autocomplete="new-password"/>
-        <button class="toggle-vis" id="toggleMaster" title="Mostrar/ocultar">👁</button>
+        <input type="password" id="master" placeholder="La teva contrasenya secreta…" autocomplete="new-password"/>
+        <button class="toggle-vis" id="toggleMaster" title="Mostrar/amagar">👁</button>
       </div>
     </div>
 
-    <!-- Nombre del sitio -->
+    <!-- Nom del lloc -->
     <div class="field">
-      <label><span class="dot" style="background:var(--accent2)"></span> Sitio web</label>
+      <label><span class="dot" style="background:var(--accent2)"></span> Lloc web</label>
       <div class="input-wrap">
-        <input type="text" id="site" placeholder="ej: github.com, netflix, trabajo…" autocomplete="off"/>
+        <input type="text" id="site" placeholder="p. ex.: github.com, netflix, feina…" autocomplete="off"/>
       </div>
     </div>
 
-    <!-- Opciones -->
+    <!-- Opcions -->
     <div class="options">
       <!-- Longitud -->
       <div class="option-group">
@@ -504,13 +504,13 @@
         </div>
       </div>
 
-      <!-- Caracteres -->
+      <!-- Caràcters -->
       <div class="option-group">
-        <label><span class="dot"></span> Incluir</label>
+        <label><span class="dot"></span> Incloure</label>
         <div class="checkboxes">
           <label class="check-item">
             <input type="checkbox" id="chkUpper" checked/>
-            <span>Mayúsculas</span>
+            <span>Majúscules</span>
           </label>
           <label class="check-item">
             <input type="checkbox" id="chkNumbers" checked/>
@@ -518,20 +518,20 @@
           </label>
           <label class="check-item">
             <input type="checkbox" id="chkSymbols" checked/>
-            <span>Símbolos</span>
+            <span>Símbols</span>
           </label>
         </div>
       </div>
     </div>
 
-    <div class="error-msg" id="errorMsg">⚠ Rellena la contraseña maestra y el sitio web.</div>
+    <div class="error-msg" id="errorMsg">⚠ Omple la contrasenya mestra i el lloc web.</div>
 
-    <button class="btn-generate" id="btnGenerate">⚡ Generar contraseña</button>
+    <button class="btn-generate" id="btnGenerate">⚡ Generar contrasenya</button>
 
-    <!-- Resultado -->
+    <!-- Resultat -->
     <div class="result-section" id="resultSection">
       <div class="result-label">
-        <span>contraseña generada</span>
+        <span>contrasenya generada</span>
         <span class="strength-badge" id="strengthBadge"></span>
       </div>
       <div class="result-box">
@@ -542,20 +542,20 @@
         <div class="entropy-fill" id="entropyFill"></div>
       </div>
       <div class="info-row">
-        <div class="info-pill">Entropía: <span id="entropyVal">—</span> bits</div>
-        <div class="info-pill">Longitud: <span id="lenVal">—</span> chars</div>
+        <div class="info-pill">Entropia: <span id="entropyVal">—</span> bits</div>
+        <div class="info-pill">Longitud: <span id="lenVal">—</span> caràcters</div>
         <div class="info-pill">PBKDF2-SHA256</div>
       </div>
     </div>
   </div>
 
   <footer>
-    Todo el proceso ocurre en tu navegador. Nunca se envían datos a ningún servidor.
+    Tot el procés passa al teu navegador. Mai no s'envien dades a cap servidor.
   </footer>
 </div>
 
 <script>
-  // Toggle visibilidad contraseña maestra
+  // Mostrar/amagar la contrasenya mestra
   const toggleMaster = document.getElementById('toggleMaster');
   const masterInput = document.getElementById('master');
   toggleMaster.addEventListener('click', () => {
@@ -571,7 +571,7 @@
     lengthVal.textContent = lengthSlider.value;
   });
 
-  // Generación con PBKDF2
+  // Generació amb PBKDF2
   async function derivePassword(master, site, length, useUpper, useNumbers, useSymbols) {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
@@ -592,7 +592,7 @@
     if (useNumbers) charset += '0123456789';
     if (useSymbols) charset += '!@#$%^&*()-_=+[]{}|;:,.<>?';
 
-    // Garantizar al menos un char de cada categoría activada
+    // Garantir com a mínim un caràcter de cada categoria activada
     const required = [];
     const lower = 'abcdefghijklmnopqrstuvwxyz';
     const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -604,13 +604,13 @@
     if (useNumbers) required.push(digits[bytes[2] % digits.length]);
     if (useSymbols) required.push(symbols[bytes[3] % symbols.length]);
 
-    // Rellenar hasta longitud deseada
+    // Omplir fins a la longitud desitjada
     let password = '';
     for (let i = 0; i < length; i++) {
       password += charset[bytes[i % bytes.length] % charset.length];
     }
 
-    // Insertar requeridos en posiciones fijas (usando bytes como offsets)
+    // Inserir els obligatoris en posicions fixes (fent servir bytes com a desplaçaments)
     let arr = password.split('');
     required.forEach((ch, idx) => {
       const pos = (bytes[20 + idx] % length);
@@ -632,7 +632,7 @@
     return s;
   }
 
-  // Botón generar
+  // Botó generar
   document.getElementById('btnGenerate').addEventListener('click', async () => {
     const master = document.getElementById('master').value.trim();
     const site = document.getElementById('site').value.trim();
@@ -650,7 +650,7 @@
     const useSymbols = document.getElementById('chkSymbols').checked;
 
     const btn = document.getElementById('btnGenerate');
-    btn.textContent = '⏳ Derivando…';
+    btn.textContent = '⏳ Derivant…';
     btn.disabled = true;
 
     try {
@@ -663,15 +663,15 @@
       document.getElementById('entropyVal').textContent = entropy;
       document.getElementById('lenVal').textContent = length;
 
-      // Barra de entropía
+      // Barra d'entropia
       const pct = Math.min(100, (entropy / 128) * 100);
       const fill = document.getElementById('entropyFill');
       fill.style.width = pct + '%';
 
       let color, label, cls;
-      if (entropy >= 80) { color = 'var(--success)'; label = '🔒 Fuerte'; cls = 'strength-strong'; }
-      else if (entropy >= 50) { color = '#ffc800'; label = '⚠ Media'; cls = 'strength-medium'; }
-      else { color = 'var(--danger)'; label = '⛔ Débil'; cls = 'strength-weak'; }
+      if (entropy >= 80) { color = 'var(--success)'; label = '🔒 Forta'; cls = 'strength-strong'; }
+      else if (entropy >= 50) { color = '#ffc800'; label = '⚠ Mitjana'; cls = 'strength-medium'; }
+      else { color = 'var(--danger)'; label = '⛔ Feble'; cls = 'strength-weak'; }
 
       fill.style.background = color;
       const badge = document.getElementById('strengthBadge');
@@ -680,21 +680,21 @@
 
       document.getElementById('resultSection').classList.add('visible');
     } catch(e) {
-      errorMsg.textContent = '❌ Error al generar la contraseña. Intenta de nuevo.';
+      errorMsg.textContent = '❌ Error en generar la contrasenya. Torna-ho a provar.';
       errorMsg.classList.add('visible');
     }
 
-    btn.textContent = '⚡ Generar contraseña';
+    btn.textContent = '⚡ Generar contrasenya';
     btn.disabled = false;
   });
 
-  // Copiar al portapapeles
+  // Copiar al porta-retalls
   document.getElementById('btnCopy').addEventListener('click', async () => {
     const pwd = document.getElementById('resultPassword').textContent;
     const btn = document.getElementById('btnCopy');
     try {
       await navigator.clipboard.writeText(pwd);
-      btn.textContent = '✓ Copiado';
+      btn.textContent = '✓ Copiat';
       btn.classList.add('copied');
       setTimeout(() => {
         btn.textContent = 'Copiar';
@@ -705,7 +705,7 @@
     }
   });
 
-  // Generar al pulsar Enter
+  // Generar en prémer Enter
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('btnGenerate').click();
   });

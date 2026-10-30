@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="es">
+<html lang="ca">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Calculadora de combinaciones y entropía de contraseñas</title>
+<title>Calculadora de combinacions i entropia de contrasenyes</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="wrap">
-    <h1>Calculadora de combinaciones y entropía</h1>
-    <p class="lead">Selecciona los tipos de caracteres y la longitud. Calcula combinaciones, entropía, clasificación y tiempo aproximado de ataque por fuerza bruta.</p>
+    <h1>Calculadora de combinacions i entropia</h1>
+    <p class="lead">Selecciona els tipus de caràcters i la longitud. Calcula les combinacions, l'entropia, la classificació i el temps aproximat d'un atac per força bruta.</p>
 
     <div class="grid">
         <div class="card">
@@ -20,57 +20,57 @@
                     </label>
                 </div>
                 <div style="width:180px;">
-                    <label class="row"><span class="muted">Velocidad</span>
+                    <label class="row"><span class="muted">Velocitat</span>
                         <select id="speed">
-                            <option value="1000000">CPU (≈1e6 intentos/s)</option>
-                            <option value="1000000000">GPU moderna (≈1e9 intentos/s)</option>
-                            <option value="10000000000" selected>Última generación doméstico (≈1e10 intentos/s)</option>
-                            <option value="100000000000000">Granjas/cluster (≈1e14 intentos/s)</option>
+                            <option value="1000000">CPU (≈1e6 intents/s)</option>
+                            <option value="1000000000">GPU moderna (≈1e9 intents/s)</option>
+                            <option value="10000000000" selected>Equip domèstic d'última generació (≈1e10 intents/s)</option>
+                            <option value="100000000000000">Granges/clúster (≈1e14 intents/s)</option>
                         </select>
                     </label>
                 </div>
             </div>
 
             <div style="margin-bottom:8px">
-                <div class="muted">Conjuntos de caracteres</div>
+                <div class="muted">Conjunts de caràcters</div>
                 <div class="sets" style="margin-top:6px">
-                    <label><input id="lower" type="checkbox" checked /> minúsculas (a-z)</label>
-                    <label><input id="upper" type="checkbox" checked /> MAYÚSCULAS (A-Z)</label>
+                    <label><input id="lower" type="checkbox" checked /> minúscules (a-z)</label>
+                    <label><input id="upper" type="checkbox" checked /> MAJÚSCULES (A-Z)</label>
                     <label><input id="numbers" type="checkbox" checked /> números (0-9)</label>
-                    <label><input id="symbols" type="checkbox" /> símbolos</label>
+                    <label><input id="symbols" type="checkbox" /> símbols</label>
                 </div>
                 <div style="margin-top:8px">
-                    <div class="muted">Símbolos (editable)</div>
+                    <div class="muted">Símbols (editable)</div>
                     <input id="symbolsList" type="text" value="!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" />
                 </div>
             </div>
 
             <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
                 <button id="calcBtn">Calcular</button>
-                <button id="resetBtn" class="copy">Restablecer</button>
+                <button id="resetBtn" class="copy">Restablir</button>
             </div>
         </div>
 
         <div class="card">
             <div class="out" id="results">
-                <div class="stat"><div class="muted">Tamaño del conjunto de caracteres</div><div id="charsetSize">—</div></div>
-                <div class="stat"><div class="muted">Combinaciones posibles</div><div id="combinations">—</div></div>
-                <div class="stat"><div class="muted">Entropía</div><div id="entropy">—</div></div>
+                <div class="stat"><div class="muted">Mida del conjunt de caràcters</div><div id="charsetSize">—</div></div>
+                <div class="stat"><div class="muted">Combinacions possibles</div><div id="combinations">—</div></div>
+                <div class="stat"><div class="muted">Entropia</div><div id="entropy">—</div></div>
 
                 <div>
-                    <div class="muted">Clasificación</div>
+                    <div class="muted">Classificació</div>
                     <div id="classification" class="classification" style="margin-top:6px;background:var(--warn);">—</div>
                 </div>
 
                 <div style="margin-top:8px">
-                    <div class="muted">Barra de entropía</div>
+                    <div class="muted">Barra d'entropia</div>
                     <div class="bar" style="margin-top:6px"><i id="entropyBar" style="width:0%;background:var(--bad)"></i></div>
                 </div>
 
                 <div style="margin-top:10px">
-                    <div class="muted">Tiempo estimado para probar todas las combinaciones (peor caso)</div>
+                    <div class="muted">Temps estimat per provar totes les combinacions (pitjor cas)</div>
                     <div id="timeWorst" class="stat">—</div>
-                    <div class="muted" style="margin-top:8px">Tiempo estimado medio (encontrar la contraseña ≈ mitad del espacio)</div>
+                    <div class="muted" style="margin-top:8px">Temps estimat mitjà (trobar la contrasenya ≈ la meitat de l'espai)</div>
                     <div id="timeAvg" class="stat">—</div>
                 </div>
 
@@ -78,7 +78,7 @@
         </div>
     </div>
 
-    <footer>Resultados aproximados. Las velocidades son estimadas y dependen del hardware y del algoritmo.</footer>
+    <footer>Resultats aproximats. Les velocitats són estimades i depenen del maquinari i de l'algorisme.</footer>
 </div>
 
 <script>
@@ -108,9 +108,9 @@
         charsetSizeOut.textContent = charset || '0';
 
         if (!charset) {
-            combinationsOut.textContent = 'Selecciona al menos un conjunto';
+            combinationsOut.textContent = 'Selecciona com a mínim un conjunt';
             entropyOut.textContent = '0 bits';
-            classificationOut.textContent = 'Inseguro';
+            classificationOut.textContent = 'Insegura';
             classificationOut.style.background = 'var(--bad)';
             entropyBar.style.width = '2%'; entropyBar.style.background = 'var(--bad)';
             timeWorst.textContent = '—'; timeAvg.textContent = '—';
@@ -123,11 +123,11 @@
 
         // Classification based on entropy
         let cls = '', color = '';
-        if (entropy < 28) { cls = 'Muy débil'; color = 'var(--bad)'; }
-        else if (entropy < 36) { cls = 'Débil'; color = 'var(--warn)'; }
-        else if (entropy < 60) { cls = 'Aceptable'; color = 'orange'; }
-        else if (entropy < 128) { cls = 'Fuerte'; color = 'var(--good)'; }
-        else { cls = 'Muy fuerte'; color = 'teal'; }
+        if (entropy < 28) { cls = 'Molt feble'; color = 'var(--bad)'; }
+        else if (entropy < 36) { cls = 'Feble'; color = 'var(--warn)'; }
+        else if (entropy < 60) { cls = 'Acceptable'; color = 'orange'; }
+        else if (entropy < 128) { cls = 'Forta'; color = 'var(--good)'; }
+        else { cls = 'Molt forta'; color = 'teal'; }
         classificationOut.textContent = cls;
         classificationOut.style.background = color;
 
@@ -152,7 +152,7 @@
         }
 
         // Time estimations
-        const attempts = Number(speedSel.value) || 1e10; // intentos por segundo
+        const attempts = Number(speedSel.value) || 1e10; // intents per segon
         // Use log10(seconds) = entropy*log10(2) - log10(attempts)
         const log10Seconds = entropy * Math.log10(2) - Math.log10(attempts);
         const worst = formatTimeFromLog10(log10Seconds);
@@ -165,7 +165,7 @@
         const s = b.toString();
         const len = s.length;
         const first = s.slice(0,6);
-        return first + '… ×10^' + (len-1) + ' (' + s.length + ' dígitos)';
+        return first + '… ×10^' + (len-1) + ' (' + s.length + ' dígits)';
     }
     function toScientificFromEntropy(entropy) {
         const log10 = entropy * Math.log10(2);
@@ -175,20 +175,20 @@
 
     function toHumanSeconds(n) {
         // n is Number seconds
-        if (!isFinite(n)) return 'Infinito';
+        if (!isFinite(n)) return 'Infinit';
         if (n < 1) return (n*1000).toFixed(2) + ' ms';
         if (n < 60) return n.toFixed(2) + ' s';
         if (n < 3600) return (n/60).toFixed(2) + ' min';
         if (n < 86400) return (n/3600).toFixed(2) + ' h';
-        if (n < 31536000) return (n/86400).toFixed(2) + ' días';
+        if (n < 31536000) return (n/86400).toFixed(2) + ' dies';
         const years = n / 31536000;
-        if (years < 1000) return years.toFixed(2) + ' años';
+        if (years < 1000) return years.toFixed(2) + ' anys';
         const kilo = years / 1000;
-        if (kilo < 1000) return kilo.toFixed(2) + ' mil años';
+        if (kilo < 1000) return kilo.toFixed(2) + ' mil anys';
         const mega = kilo / 1000;
-        if (mega < 1000) return mega.toFixed(2) + ' millones de años';
+        if (mega < 1000) return mega.toFixed(2) + ' milions d\'anys';
         const giga = mega / 1000;
-        return giga.toFixed(2) + ' mil millones de años';
+        return giga.toFixed(2) + ' mil milions d\'anys';
     }
 
     function formatTimeFromLog10(log10Seconds) {
@@ -201,7 +201,7 @@
         const yearsLog10 = log10Seconds - Math.log10(31536000);
         const yearsPower = Math.floor(yearsLog10);
         const yearsMant = Math.pow(10, yearsLog10 - yearsPower);
-        const approxYears = yearsMant.toFixed(3) + '×10^' + yearsPower + ' años';
+        const approxYears = yearsMant.toFixed(3) + '×10^' + yearsPower + ' anys';
         const approxSeconds = (Math.pow(10, log10Seconds - Math.floor(log10Seconds))).toFixed(3) + '×10^' + Math.floor(log10Seconds) + ' s';
         return approxSeconds + ' ≈ ' + approxYears;
     }
