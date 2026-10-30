@@ -1,17 +1,106 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surikata3k QuickCalc</title>
+    <title>web-apps · surikata3k</title>
+    <meta name="description" content="Col·lecció de petites aplicacions web de surikata3k: eines per a docència i per a contrasenyes.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><rect x='7' y='7' width='8' height='8' rx='2' fill='white'/><rect x='17' y='7' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='7' y='17' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='17' y='17' width='8' height='8' rx='2' fill='white' opacity='.45'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Surikata3k QuickCalc</h1>
-    <a href="calc_hours_ra/">Calcular hores RA</a>
-    <a href="password_calculator/">Password calculator</a>
-    <a href="password_info/">Password info</a>
-    <a href="vaultless/">Vaultless password</a>
-    <a href="passgen/">Passgen</a>
+    <header class="hero">
+        <div class="brand">
+            <span class="logo" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+            </span>
+            <span class="path">~/surikata3k/<strong>web-apps</strong></span>
+        </div>
+        <h1>web-apps</h1>
+        <p class="lead">Petites aplicacions que funcionen directament al navegador.
+            Sense instal·lar res, sense servidor: obre-les i fes-les servir.</p>
+    </header>
+
+    <main>
+        <section aria-labelledby="sec-aula">
+            <h2 id="sec-aula"><span class="dot dot-aula"></span>Aula i docència</h2>
+            <div class="grid">
+                <a class="app app-featured" href="dits_magics/" style="--accent: var(--c-pink)">
+                    <span class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="2.5"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 15h10"/></svg>
+                    </span>
+                    <span class="body">
+                        <span class="name">Dits Màgics <span class="badge">Nou</span></span>
+                        <span class="desc">Aprèn a escriure amb l'ordinador: mecanografia en català per a nens i nenes, amb 43 nivells i estrelles.</span>
+                    </span>
+                    <span class="go" aria-hidden="true">→</span>
+                </a>
+                <a class="app" href="calc_hours_ra/" style="--accent: var(--c-green)">
+                    <span class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M8 14h3M8 17h6"/></svg>
+                    </span>
+                    <span class="body">
+                        <span class="name">Hores de RA</span>
+                        <span class="desc">Planifica i distribueix les hores dels resultats d'aprenentatge d'un mòdul.</span>
+                    </span>
+                    <span class="go" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </section>
+
+        <section aria-labelledby="sec-pass">
+            <h2 id="sec-pass"><span class="dot dot-pass"></span>Contrasenyes i seguretat</h2>
+            <div class="grid">
+                <a class="app" href="passgen/" style="--accent: var(--c-indigo)">
+                    <span class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M18.5 15l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"/></svg>
+                    </span>
+                    <span class="body">
+                        <span class="name">PassForge</span>
+                        <span class="desc">Genera contrasenyes aleatòries i robustes.</span>
+                    </span>
+                    <span class="go" aria-hidden="true">→</span>
+                </a>
+                <a class="app" href="vaultless/" style="--accent: var(--c-violet)">
+                    <span class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2.5 2.5M14 9l2 2"/></svg>
+                    </span>
+                    <span class="body">
+                        <span class="name">Vaultless Password</span>
+                        <span class="desc">Contrasenyes deterministes a partir d'una clau mestra, sense guardar-les enlloc.</span>
+                    </span>
+                    <span class="go" aria-hidden="true">→</span>
+                </a>
+                <a class="app" href="password_info/" style="--accent: var(--c-amber)">
+                    <span class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+                    </span>
+                    <span class="body">
+                        <span class="name">Analitzador de contrasenya</span>
+                        <span class="desc">Comprova com de forta és una contrasenya.</span>
+                    </span>
+                    <span class="go" aria-hidden="true">→</span>
+                </a>
+                <a class="app" href="password_calculator/" style="--accent: var(--c-cyan)">
+                    <span class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><rect x="4.5" y="2.5" width="15" height="19" rx="2.5"/><path d="M8 6.5h8M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h3.5"/></svg>
+                    </span>
+                    <span class="body">
+                        <span class="name">Calculadora d'entropia</span>
+                        <span class="desc">Combinacions possibles i entropia segons la longitud i el joc de caràcters.</span>
+                    </span>
+                    <span class="go" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <span>Fet amb HTML, CSS i JavaScript · surikata3k</span>
+        <a href="https://github.com/surikata3k/web-apps">Codi a GitHub</a>
+    </footer>
 </body>
 </html>

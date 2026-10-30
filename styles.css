@@ -1,73 +1,278 @@
-/* --- Variables Reutilizadas --- */
+/* ===== web-apps · pàgina d'inici ===== */
+
 :root {
-    --bg-color: #f4f7f6; /* Fondo general claro */
-    --body-text: #333; /* Color de texto principal */
-    --card-bg: #fff; /* Fondo de las tarjetas/contenedores (no aplica directamente aquí, pero útil) */
-    --border-color: #ddd; /* Color de borde sutil */
-    --primary-color: #007bff; /* Color principal para botones/énfasis */
-    --primary-hover: #0056b3; /* Color primario al pasar el ratón */
-    
-    --spacing: 1.5rem;
-    --radius: 8px; /* Borde redondeado */
+    --bg: #f6f7fb;
+    --bg-glow-1: rgba(99, 102, 241, 0.16);
+    --bg-glow-2: rgba(236, 72, 153, 0.10);
+    --surface: #ffffff;
+    --border: #e4e6ef;
+    --text: #151827;
+    --muted: #5d6178;
+
+    --c-indigo: #4f46e5;
+    --c-violet: #7c3aed;
+    --c-pink:   #db2777;
+    --c-green:  #059669;
+    --c-amber:  #d97706;
+    --c-cyan:   #0891b2;
+
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(20, 24, 39, 0.04), 0 8px 24px rgba(20, 24, 39, 0.06);
+    --shadow-hover: 0 2px 4px rgba(20, 24, 39, 0.06), 0 16px 40px rgba(20, 24, 39, 0.12);
 }
 
-*, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #0d0f1a;
+        --bg-glow-1: rgba(99, 102, 241, 0.22);
+        --bg-glow-2: rgba(236, 72, 153, 0.12);
+        --surface: #161a2b;
+        --border: #262b42;
+        --text: #eef0fa;
+        --muted: #9aa0bd;
+
+        --c-indigo: #818cf8;
+        --c-violet: #a78bfa;
+        --c-pink:   #f472b6;
+        --c-green:  #34d399;
+        --c-amber:  #fbbf24;
+        --c-cyan:   #22d3ee;
+
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.45);
+    }
 }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--body-text);
-    line-height: 1.6;
-    padding: var(--spacing);
-    text-align: center; /* Centra el contenido de bloque como el <h1> */
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:
+        radial-gradient(900px 500px at 10% -10%, var(--bg-glow-1), transparent 70%),
+        radial-gradient(700px 450px at 100% 0%, var(--bg-glow-2), transparent 70%),
+        var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    line-height: 1.55;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* --- Estructura Principal y Título --- */
+/* ----- Capçalera ----- */
+.hero {
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 64px 0 40px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.logo {
+    display: grid;
+    grid-template-columns: repeat(2, 12px);
+    gap: 4px;
+    padding: 8px;
+    border-radius: 12px;
+    background: var(--c-indigo);
+    box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35);
+}
+.logo span { width: 12px; height: 12px; border-radius: 3px; background: #fff; }
+.logo span:nth-child(2), .logo span:nth-child(3) { opacity: 0.7; }
+.logo span:nth-child(4) { opacity: 0.45; }
+
+.path {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.9rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+.path strong { color: var(--text); font-weight: 500; }
 
 h1 {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    margin-bottom: var(--spacing);
-    padding-bottom: 0.5rem;
-    border-bottom: 3px solid var(--border-color);
-    display: inline-block; /* Ajusta el borde solo al tamaño del texto */
+    font-size: clamp(2.6rem, 8vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(100deg, var(--c-indigo), var(--c-violet) 45%, var(--c-pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-bottom: 6px;
 }
 
-/* --- Estilo de Enlaces (Botones) --- */
+.lead {
+    margin-top: 16px;
+    max-width: 560px;
+    font-size: 1.1rem;
+    color: var(--muted);
+}
 
-/* Envuelve los enlaces en un contenedor para limitar su ancho si es necesario */
-body > a {
-    display: block; /* Hace que el enlace ocupe todo el ancho disponible */
-    max-width: 400px; /* Limita el ancho máximo para que no se extienda demasiado en pantallas grandes */
-    margin: 0.75rem auto; /* Centra el enlace y añade margen vertical */
-    
-    /* Estilo visual de botón */
-    background-color: var(--card-bg); /* Fondo blanco */
-    color: var(--primary-color); /* Texto en color primario */
-    text-decoration: none; /* Quita el subrayado */
-    padding: 1rem 1.5rem;
-    border: 2px solid var(--primary-color);
+/* ----- Seccions ----- */
+main {
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    flex: 1;
+}
+
+section + section { margin-top: 44px; }
+
+h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 16px;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-aula { background: var(--c-pink); }
+.dot-pass { background: var(--c-indigo); }
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+    gap: 16px;
+}
+
+/* ----- Targetes d'app ----- */
+.app {
+    --accent: var(--c-indigo);
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.app::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.app:hover, .app:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-hover);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.app:hover::before, .app:focus-visible::before { opacity: 1; }
+.app:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+.icon svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.desc { font-size: 0.92rem; color: var(--muted); }
+
+.badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #fff;
+    background: var(--accent);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.go {
+    margin-left: auto;
+    align-self: center;
     font-size: 1.2rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    color: var(--muted);
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+.app:hover .go { transform: translateX(4px); color: var(--accent); }
+
+/* Targeta destacada: ocupa tota l'amplada en pantalles grans */
+.app-featured {
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 60%),
+        var(--surface);
+}
+@media (min-width: 640px) {
+    .app-featured { grid-column: 1 / -1; padding: 26px; }
+    .app-featured .icon { width: 56px; height: 56px; }
+    .app-featured .name { font-size: 1.25rem; }
 }
 
-/* Efecto al pasar el ratón */
-body > a:hover {
-    background-color: var(--primary-color);
-    color: #fff; /* Texto blanco */
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px); /* Pequeño levantamiento */
+/* ----- Peu ----- */
+footer {
+    max-width: 960px;
+    width: 100%;
+    margin: 64px auto 0;
+    padding: 24px 0 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+footer a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+footer a:hover { color: var(--text); }
+
+@media (max-width: 480px) {
+    .hero { padding-top: 40px; }
+    .app { padding: 16px; gap: 14px; }
 }
 
-/* Efecto al pulsar/activar */
-body > a:active {
-    background-color: var(--primary-hover);
-    transform: translateY(0);
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
 }
