@@ -1,184 +1,336 @@
-<!doctype html>
-<html lang="ca">
+<!DOCTYPE html>
+<html lang="ca" class="h-full bg-slate-50">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Analitzador de contrasenya</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <h1>Analitzador de contrasenya</h1>
-  <p class="small muted">Introdueix una contrasenya i prem <strong>Analitzar</strong> per obtenir-ne informació detallada.</p>
-
-  <label for="pwd">Contrasenya</label>
-  <input id="pwd" type="password" autocomplete="new-password" placeholder="Escriu aquí la teva contrasenya" />
-
-  <div class="controls">
-    <button id="analyze">Analitzar</button>
-    <button id="toggle" class="secondary">Mostrar</button>
-    <button id="copy" class="secondary">Copiar</button>
-    <label for="speed" style="margin-left:auto;align-self:center;font-size:.9rem;color:#334155">Equip:</label>
-    <select id="speed" title="Velocitat de prova (hashes/segon)" style="padding:8px 10px;border-radius:6px;border:1px solid #cbd5e0;background:#fff">
-      <option value="100">CPU de mòbil — 100 H/s</option>
-      <option value="1000">CPU de sobretaula — 1.000 H/s</option>
-      <option value="100000">CPU potente — 100.000 H/s</option>
-      <option value="100000000">GPU domèstica — 100 M H/s</option>
-      <option value="10000000000">Cluster/GPU pro — 10 G H/s</option>
-      <option value="1000000000000">ASIC / Estat — 1 T H/s</option>
-    </select>
-  </div>
-
-  <div id="output" class="result" aria-live="polite" hidden>
-    <div class="row"><strong>Longitud</strong><span id="length">0</span></div>
-    <div class="row"><strong>Majúscules</strong><span id="upper">0</span></div>
-    <div class="row"><strong>Minúscules</strong><span id="lower">0</span></div>
-    <div class="row"><strong>Dígits</strong><span id="digits">0</span></div>
-    <div class="row"><strong>Símbols</strong><span id="symbols">0</span></div>
-    <div class="row"><strong>Espais</strong><span id="spaces">0</span></div>
-    <div class="row"><strong>Entropia (bits)</strong><span id="entropy">0</span></div>
-    <div class="row"><strong>Fortalesa</strong><span id="strength">—</span></div>
-    <div class="bar" title="Indicador de fortalesa"><i id="strengthBar"></i></div>
-    <div style="margin-top:12px;border-top:1px dashed #eef2f7;padding-top:10px">
-      <div class="row"><strong>Combinacions possibles</strong><span id="combinations">—</span></div>
-      <div class="row"><strong>Temps estimat (força bruta)</strong><span id="timeEstimate">—</span></div>
-    </div>
-  </div>
-
-  <script>
-    const pwd = document.getElementById('pwd');
-    const analyzeBtn = document.getElementById('analyze');
-    const toggleBtn = document.getElementById('toggle');
-    const copyBtn = document.getElementById('copy');
-    const output = document.getElementById('output');
-    const speedSelect = document.getElementById('speed');
-
-    const el = id => document.getElementById(id);
-
-    function analyze(value){
-      const length = value.length;
-      const upper = (value.match(/[A-Z]/g)||[]).length;
-      const lower = (value.match(/[a-z]/g)||[]).length;
-      const digits = (value.match(/[0-9]/g)||[]).length;
-      const spaces = (value.match(/\s/g)||[]).length;
-      const symbolChars = value.replace(/[A-Za-z0-9\s]/g,'');
-      const symbols = symbolChars.length;
-
-      // Determine pool size for entropy estimate
-      let pool = 0;
-      if(lower) pool += 26;
-      if(upper) pool += 26;
-      if(digits) pool += 10;
-      if(symbols) pool += 32; // approximate printable symbol set
-
-      // If nothing matches (empty), entropy is zero
-      const entropy = (pool > 0 && length>0) ? Math.round(length * Math.log2(pool)) : 0;
-
-      // log10 de les combinacions, per a estimacions grans
-      const log10Comb = (pool > 0 && length > 0) ? (length * Math.log10(pool)) : -Infinity;
-
-      return {length,upper,lower,digits,symbols,spaces,entropy:entropy,pool,log10Comb}
-    }
-
-    function formatNumberWithSeparators(s){
-      return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-
-    function humanTimeFromSeconds(seconds){
-      if(!isFinite(seconds) || seconds === 0) return '0 s';
-      const secs = Number(seconds);
-      if(secs < 60) return secs.toFixed(0) + ' s';
-      if(secs < 3600) return (secs/60).toFixed(2) + ' min';
-      if(secs < 3600*24) return (secs/3600).toFixed(2) + ' h';
-      if(secs < 3600*24*365) return (secs/(3600*24)).toFixed(2) + ' dies';
-      return (secs/(3600*24*365)).toFixed(2) + ' anys';
-    }
-
-    function computeCombinationsDisplay(pool, length, log10Comb){
-      if(length === 0 || pool === 0) return {display:'0', exact:null, log10: -Infinity};
-      const approxDigits = log10Comb;
-      if(approxDigits < 21){
-        try{
-          const exact = BigInt(pool) ** BigInt(length);
-          const s = exact.toString();
-          const disp = formatNumberWithSeparators(s);
-          return {display: disp, exact: s, log10: Math.log10(Number(s))};
-        }catch(e){
-          // fallback to approximation
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analitzador de contrasenya</title>
+    <meta name="description" content="Comprova com de forta és una contrasenya: composició, entropia, patrons febles i temps estimat d'un atac de força bruta.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><rect x='7' y='7' width='8' height='8' rx='2' fill='white'/><rect x='17' y='7' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='7' y='17' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='17' y='17' width='8' height='8' rx='2' fill='white' opacity='.45'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } }
         }
-      }
-      const power = Math.floor(approxDigits);
-      const mant = Math.pow(10, approxDigits - power);
-      return {display: mant.toFixed(3) + ' × 10^' + power, exact: null, log10: approxDigits};
-    }
+    </script>
+</head>
+<body class="min-h-full flex flex-col font-sans text-slate-800 antialiased bg-slate-50">
 
-    function computeTimeEstimate(log10Comb, speed){
-      if(!isFinite(log10Comb) || log10Comb === -Infinity) return '—';
-      const log10Seconds = log10Comb - Math.log10(speed);
-      if(log10Seconds < 15){
-        const seconds = Math.pow(10, log10Seconds);
-        return humanTimeFromSeconds(seconds) + ' (' + seconds.toExponential(3) + ' s)';
-      }
-      const yearsLog10 = log10Seconds - Math.log10(3600*24*365);
-      const yearsPower = Math.floor(yearsLog10);
-      const yearsMant = Math.pow(10, yearsLog10 - yearsPower);
-      return '≈ ' + yearsMant.toFixed(3) + ' × 10^' + yearsPower + ' anys (aprox.)';
-    }
+    <!-- Capçalera -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-200">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Analitzador de contrasenya</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Composició, entropia, patrons febles i temps de força bruta</p>
+                </div>
+            </div>
+            <button id="btnExample" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Provar un exemple</span>
+            </button>
+        </div>
+    </header>
 
-    function render(info){
-      el('length').textContent = info.length;
-      el('upper').textContent = info.upper;
-      el('lower').textContent = info.lower;
-      el('digits').textContent = info.digits;
-      el('symbols').textContent = info.symbols;
-      el('spaces').textContent = info.spaces;
-      el('entropy').textContent = info.entropy;
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      // Recalcular la fortalesa visual a partir de l'entropia
-      const bits = info.entropy;
-      let strength = '—';
-      let pct = 0;
-      if(bits === 0){ strength = 'Molt feble'; pct = 8 }
-      else if(bits < 28){ strength = 'Molt feble'; pct = 12 }
-      else if(bits < 36){ strength = 'Feble'; pct = 30 }
-      else if(bits < 60){ strength = 'Acceptable'; pct = 55 }
-      else if(bits < 128){ strength = 'Forta'; pct = 80 }
-      else { strength = 'Molt forta'; pct = 100 }
-      el('strength').textContent = strength;
-      document.getElementById('strengthBar').style.width = pct + '%';
+        <!-- Entrada -->
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="key-round" class="w-5 h-5 text-indigo-600"></i>
+                        <h2 class="font-semibold text-slate-800 text-sm">Contrasenya a analitzar</h2>
+                    </div>
+                    <span class="text-xs text-slate-400">No surt del navegador</span>
+                </div>
+                <div class="p-4 flex flex-col gap-4">
+                    <div class="relative">
+                        <input id="pwd" type="password" autocomplete="new-password" spellcheck="false" placeholder="Escriu aquí la contrasenya"
+                            class="w-full pl-3 pr-20 py-3 font-mono text-sm bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
+                        <div class="absolute inset-y-0 right-2 flex items-center gap-0.5">
+                            <button id="toggle" class="p-1.5 rounded-md text-slate-400 hover:text-slate-700" title="Mostrar o amagar"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                            <button id="clear" class="p-1.5 rounded-md text-slate-400 hover:text-rose-600" title="Esborrar"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div id="strengthBar" class="h-full transition-all duration-300" style="width:0%"></div></div>
 
-      // Combinacions i temps segons la velocitat seleccionada
-      const speed = Number(speedSelect.value) || 1;
-      const comb = computeCombinationsDisplay(info.pool, info.length, info.log10Comb);
-      el('combinations').textContent = comb.display;
-      const timeStr = computeTimeEstimate(info.log10Comb, speed);
-      el('timeEstimate').textContent = timeStr;
-      output.hidden = false;
-    }
+                    <div>
+                        <label for="speed" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Equip atacant</label>
+                        <select id="speed" class="mt-1.5 w-full px-3 py-2.5 text-sm bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none">
+                            <option value="100">CPU de mòbil — 100 intents/s</option>
+                            <option value="1000">CPU de sobretaula — 1.000 intents/s</option>
+                            <option value="100000">CPU potent — 100.000 intents/s</option>
+                            <option value="100000000">GPU domèstica — 100 milions/s</option>
+                            <option value="10000000000" selected>Clúster o GPU professional — 10.000 milions/s</option>
+                            <option value="1000000000000">ASIC o estat — 1 bilió/s</option>
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">La velocitat real depèn molt de com el servei guarda les contrasenyes (bcrypt, SHA-256…).</p>
+                    </div>
+                </div>
+            </div>
 
-    analyzeBtn.addEventListener('click', ()=>{
-      const v = pwd.value || '';
-      const info = analyze(v);
-      render(info);
-    });
+            <!-- Composició -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="chart-bar" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Composició</h2>
+                </div>
+                <table class="w-full text-left text-xs">
+                    <tbody id="composition" class="divide-y divide-slate-100 text-slate-700 font-medium"></tbody>
+                </table>
+            </div>
+        </section>
 
-    toggleBtn.addEventListener('click', ()=>{
-      if(pwd.type === 'password'){ pwd.type = 'text'; toggleBtn.textContent = 'Amagar' }
-      else { pwd.type = 'password'; toggleBtn.textContent = 'Mostrar' }
-    });
+        <!-- Resultats -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Longitud</span>
+                        <i data-lucide="ruler" class="w-4 h-4 text-blue-500"></i>
+                    </div>
+                    <div id="kpiLength" class="text-2xl font-bold text-slate-900">0</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">caràcters</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Entropia</span>
+                        <i data-lucide="sigma" class="w-4 h-4 text-indigo-500"></i>
+                    </div>
+                    <div id="kpiEntropy" class="text-2xl font-bold text-slate-900">0</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">bits (màxim teòric)</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Fortalesa</span>
+                        <i data-lucide="gauge" class="w-4 h-4 text-amber-500"></i>
+                    </div>
+                    <div id="kpiStrength" class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">Pendent</div>
+                    <p id="kpiStrengthDesc" class="text-[10px] text-slate-400 mt-1">Sense dades</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Conjunt</span>
+                        <i data-lucide="type" class="w-4 h-4 text-emerald-500"></i>
+                    </div>
+                    <div id="kpiPool" class="text-2xl font-bold text-slate-900">0</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">caràcters possibles</p>
+                </div>
+            </div>
 
-    copyBtn.addEventListener('click', async ()=>{
-      try{
-        await navigator.clipboard.writeText(pwd.value || '');
-        copyBtn.textContent = 'Copiat';
-        setTimeout(()=>copyBtn.textContent = 'Copiar',1200);
-      }catch(e){
-        copyBtn.textContent = 'No disponible';
-        setTimeout(()=>copyBtn.textContent = 'Copiar',1200);
-      }
-    });
+            <!-- Força bruta -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="timer" class="w-5 h-5 text-emerald-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Atac de força bruta</h2>
+                </div>
+                <div class="p-4 bg-slate-900">
+                    <pre id="bruteforce" class="font-mono text-xs text-emerald-400 whitespace-pre-wrap leading-relaxed">// Escriu una contrasenya per veure'n l'estimació...</pre>
+                </div>
+            </div>
 
-    // Analyze on Enter
-    pwd.addEventListener('keydown', e=>{ if(e.key === 'Enter') analyzeBtn.click() });
-  </script>
+            <!-- Patrons -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="scan-search" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Patrons i consells</h2>
+                </div>
+                <ul id="warnings" class="p-4 text-xs text-slate-600 leading-relaxed space-y-2">
+                    <li class="text-slate-400 italic">Encara no hi ha res a revisar.</li>
+                </ul>
+                <p class="px-4 pb-4 text-[11px] text-slate-400">L'entropia suposa que cada caràcter és aleatori. Si la contrasenya conté paraules, dates o patrons, un atac amb diccionari la trobarà molt abans.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Peu de pàgina -->
+    <footer class="border-t border-slate-200 bg-white mt-6">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <p class="text-center sm:text-left">
+                © 2026 <a href="../" class="font-medium text-slate-700 hover:text-indigo-600">web-apps</a> ·
+                Llicència <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" rel="license" target="_blank" class="font-medium text-slate-700 hover:text-indigo-600">CC BY-NC-SA 4.0</a>
+            </p>
+            <div class="flex items-center gap-4">
+                <a href="../" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Totes les apps</a>
+                <a href="https://surikata3k.com" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="globe" class="w-3.5 h-3.5"></i> surikata3k.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const pwd = $('pwd');
+
+        const COMMON = ['123456', '123456789', '12345678', '1234567', '12345', '1234', 'qwerty', 'password', 'contrasenya',
+            'contraseña', 'abc123', '111111', '000000', 'iloveyou', 'admin', 'welcome', 'letmein', 'monkey', 'dragon',
+            'football', 'barcelona', 'barca', 'visca', 'catalunya', 'qwertyuiop', 'asdfgh', 'zxcvbn', 'secret', 'master', 'login'];
+
+        function classify(bits) {
+            if (bits === 0) return { label: 'Pendent',     pill: 'bg-slate-100 text-slate-600',    bar: '#cbd5e1', desc: 'Sense dades' };
+            if (bits < 28)  return { label: 'Molt feble',  pill: 'bg-rose-100 text-rose-700',       bar: '#e11d48', desc: 'Menys de 28 bits' };
+            if (bits < 36)  return { label: 'Feble',       pill: 'bg-orange-100 text-orange-700',   bar: '#f97316', desc: '28–35 bits' };
+            if (bits < 60)  return { label: 'Acceptable',  pill: 'bg-amber-100 text-amber-700',     bar: '#f59e0b', desc: '36–59 bits' };
+            if (bits < 128) return { label: 'Forta',       pill: 'bg-emerald-100 text-emerald-700', bar: '#10b981', desc: '60–127 bits' };
+            return             { label: 'Molt forta',  pill: 'bg-teal-100 text-teal-700',       bar: '#0d9488', desc: '128 bits o més' };
+        }
+
+        function analyze(value) {
+            const chars = [...value];
+            const count = re => chars.filter(c => re.test(c)).length;
+            const info = {
+                length: chars.length,
+                lower: count(/[a-z]/),
+                upper: count(/[A-Z]/),
+                digits: count(/[0-9]/),
+                spaces: count(/\s/),
+            };
+            info.symbols = count(/[!-\/:-@\[-`{-~]/);            // símbols ASCII
+            info.other = info.length - info.lower - info.upper - info.digits - info.spaces - info.symbols; // accents, emojis…
+
+            info.pool = (info.lower ? 26 : 0) + (info.upper ? 26 : 0) + (info.digits ? 10 : 0)
+                      + (info.symbols ? 32 : 0) + (info.spaces ? 1 : 0) + (info.other ? 64 : 0);
+            info.bits = info.length && info.pool ? info.length * Math.log2(info.pool) : 0;
+            return info;
+        }
+
+        function findPatterns(value, info) {
+            const out = [];
+            const low = value.toLowerCase();
+            if (!value) return out;
+            if (COMMON.some(w => low.includes(w))) out.push(['bad', 'Conté una contrasenya o paraula molt comuna. Els atacs amb diccionari la proven primer.']);
+            if (/(.)\1{2,}/.test(value)) out.push(['warn', 'Té caràcters repetits seguits (p. ex. «aaa» o «111»).']);
+            if (hasSequence(low)) out.push(['warn', 'Té seqüències com «abc», «123» o «qwe».']);
+            if (/(19|20)\d{2}/.test(value)) out.push(['warn', 'Sembla que conté un any. Les dates són fàcils d\'endevinar.']);
+            if (info.length < 8) out.push(['bad', 'És massa curta: fes servir com a mínim 12 caràcters (millor 16 o més).']);
+            else if (info.length < 12) out.push(['warn', 'Seria millor que tingués 12 caràcters o més.']);
+            if (info.digits === info.length) out.push(['bad', 'Només té números.']);
+            else if (info.lower + info.upper === info.length) out.push(['warn', 'Només té lletres: afegeix-hi números o símbols, o fes-la més llarga.']);
+            if (!out.length) out.push(['good', 'No s\'hi detecten patrons febles habituals.']);
+            return out;
+        }
+
+        function hasSequence(s) {
+            const rows = ['abcdefghijklmnopqrstuvwxyz', '01234567890', 'qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+            for (let i = 0; i + 3 <= s.length; i++) {
+                const tri = s.slice(i, i + 3);
+                const rev = [...tri].reverse().join('');
+                if (rows.some(r => r.includes(tri) || r.includes(rev))) return true;
+            }
+            return false;
+        }
+
+        function formatCombinations(pool, length) {
+            if (!pool || !length) return '0';
+            const log10 = length * Math.log10(pool);
+            if (log10 < 21) return (BigInt(pool) ** BigInt(length)).toLocaleString('ca');
+            const p = Math.floor(log10);
+            return Math.pow(10, log10 - p).toFixed(3) + ' × 10^' + p;
+        }
+
+        function formatSeconds(log10s) {
+            if (log10s < 0) return 'menys d\'1 segon';
+            if (log10s >= 15) {
+                const y = log10s - Math.log10(31536000);
+                const p = Math.floor(y);
+                return '≈ ' + Math.pow(10, y - p).toFixed(2) + ' × 10^' + p + ' anys';
+            }
+            const s = Math.pow(10, log10s);
+            if (s < 60) return s.toFixed(1) + ' s';
+            if (s < 3600) return (s / 60).toFixed(1) + ' min';
+            if (s < 86400) return (s / 3600).toFixed(1) + ' h';
+            if (s < 31536000) return (s / 86400).toFixed(1) + ' dies';
+            return Math.round(s / 31536000).toLocaleString('ca') + ' anys';
+        }
+
+        function render() {
+            const value = pwd.value;
+            const info = analyze(value);
+            const warnings = findPatterns(value, info);
+            let cls = classify(Math.round(info.bits));
+            // Una paraula comuna o una contrasenya curta la fan feble, digui el que digui l'entropia teòrica
+            if (warnings.some(([t]) => t === 'bad') && info.bits >= 28) {
+                cls = { ...classify(30), desc: 'Penalitzada pels patrons' };
+            }
+
+            $('kpiLength').textContent = info.length;
+            $('kpiEntropy').textContent = Math.round(info.bits);
+            $('kpiPool').textContent = info.pool;
+            $('kpiStrength').textContent = cls.label;
+            $('kpiStrength').className = 'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ' + cls.pill;
+            $('kpiStrengthDesc').textContent = cls.desc;
+            $('strengthBar').style.width = info.length ? Math.max(6, Math.min(100, info.bits / 128 * 100)) + '%' : '0%';
+            $('strengthBar').style.background = cls.bar;
+
+            const rows = [
+                ['Minúscules', info.lower, 'a-z'], ['Majúscules', info.upper, 'A-Z'], ['Dígits', info.digits, '0-9'],
+                ['Símbols', info.symbols, '!@#…'], ['Espais', info.spaces, '␣'], ['Altres (accents, emojis…)', info.other, 'àç😀'],
+            ];
+            $('composition').innerHTML = rows.map(([name, n, ex]) => {
+                const pct = info.length ? n / info.length * 100 : 0;
+                return `<tr>
+                    <td class="py-2.5 px-4 w-40">${name} <span class="font-mono text-slate-400 ml-1">${ex}</span></td>
+                    <td class="py-2.5 px-4"><div class="h-1.5 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-indigo-500 rounded-full" style="width:${pct}%"></div></div></td>
+                    <td class="py-2.5 px-4 text-right font-mono w-12">${n}</td>
+                </tr>`;
+            }).join('');
+
+            if (!info.length) {
+                $('bruteforce').textContent = '// Escriu una contrasenya per veure\'n l\'estimació...';
+            } else {
+                const speed = Number($('speed').value);
+                const log10Comb = info.length * Math.log10(info.pool);
+                const log10Worst = log10Comb - Math.log10(speed);
+                $('bruteforce').textContent =
+                    `Combinacions possibles : ${formatCombinations(info.pool, info.length)}\n` +
+                    `Velocitat de l'atacant : ${speed.toLocaleString('ca')} intents/s\n` +
+                    `Temps mitjà            : ${formatSeconds(log10Worst - Math.log10(2))}\n` +
+                    `Pitjor cas             : ${formatSeconds(log10Worst)}`;
+            }
+
+            const icons = { bad: ['circle-x', 'text-rose-500'], warn: ['triangle-alert', 'text-amber-500'], good: ['circle-check', 'text-emerald-500'] };
+            const list = $('warnings');
+            list.innerHTML = '';
+            if (!warnings.length) {
+                list.innerHTML = '<li class="text-slate-400 italic">Encara no hi ha res a revisar.</li>';
+            }
+            for (const [type, text] of warnings) {
+                const li = document.createElement('li');
+                li.className = 'flex gap-2';
+                li.innerHTML = `<i data-lucide="${icons[type][0]}" class="w-4 h-4 shrink-0 ${icons[type][1]}"></i>`;
+                const span = document.createElement('span');
+                span.textContent = text;
+                li.appendChild(span);
+                list.appendChild(li);
+            }
+            lucide.createIcons();
+        }
+
+        pwd.addEventListener('input', render);
+        $('speed').addEventListener('change', render);
+
+        $('toggle').addEventListener('click', () => {
+            const show = pwd.type === 'password';
+            pwd.type = show ? 'text' : 'password';
+            $('toggle').innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+        });
+        $('clear').addEventListener('click', () => { pwd.value = ''; render(); pwd.focus(); });
+        $('btnExample').addEventListener('click', () => {
+            const examples = ['barcelona2024', 'Contrasenya123!', 'qwerty', 'Tr3s-Gats-Blaus-Salten', 'k#9Lp!2vXq$7Zm@4'];
+            pwd.value = examples[(examples.indexOf(pwd.value) + 1) % examples.length];
+            pwd.type = 'text';
+            $('toggle').innerHTML = '<i data-lucide="eye-off" class="w-4 h-4"></i>';
+            render();
+        });
+
+        render();
+    </script>
 </body>
 </html>

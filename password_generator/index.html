@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ca" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de contrasenyes</title>
+    <meta name="description" content="Genera contrasenyes aleatòries i segures directament al navegador.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><rect x='7' y='7' width='8' height='8' rx='2' fill='white'/><rect x='17' y='7' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='7' y='17' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='17' y='17' width='8' height='8' rx='2' fill='white' opacity='.45'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } }
+        }
+    </script>
+    <style>
+        input[type=range] { accent-color: #4f46e5; }
+        .pw-out { word-break: break-all; }
+    </style>
+</head>
+<body class="min-h-full flex flex-col font-sans text-slate-800 antialiased bg-slate-50">
+
+    <!-- Capçalera -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-200">
+                    <i data-lucide="key-round" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Generador de contrasenyes</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Contrasenyes aleatòries i segures, generades al teu navegador</p>
+                </div>
+            </div>
+            <button id="btnRegenerate" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                <span>Generar-ne una altra</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Opcions -->
+        <section class="lg:col-span-5">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="sliders-horizontal" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Opcions</h2>
+                </div>
+
+                <div class="p-4 flex flex-col gap-5">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="length" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Longitud</label>
+                            <span id="lengthVal" class="font-mono text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md px-2 py-0.5">20</span>
+                        </div>
+                        <input id="length" type="range" min="4" max="128" value="20" class="w-full">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>4</span><span>128</span></div>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Caràcters</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                                <input type="checkbox" id="optLower" checked class="accent-indigo-600 w-4 h-4"> Minúscules <span class="ml-auto font-mono text-xs text-slate-400">a-z</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                                <input type="checkbox" id="optUpper" checked class="accent-indigo-600 w-4 h-4"> Majúscules <span class="ml-auto font-mono text-xs text-slate-400">A-Z</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                                <input type="checkbox" id="optDigits" checked class="accent-indigo-600 w-4 h-4"> Números <span class="ml-auto font-mono text-xs text-slate-400">0-9</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                                <input type="checkbox" id="optSymbols" checked class="accent-indigo-600 w-4 h-4"> Símbols <span class="ml-auto font-mono text-xs text-slate-400">!@#</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <label class="flex items-start gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" id="optAmbiguous" class="accent-indigo-600 w-4 h-4 mt-0.5">
+                        <span>Evitar caràcters que es confonen
+                            <span class="block text-xs text-slate-400">Treu <span class="font-mono">I l 1 O 0 o | ` ' "</span>, útil si l'has de copiar a mà</span>
+                        </span>
+                    </label>
+
+                    <div id="errorAlert" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-800 text-xs">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 shrink-0"></i>
+                        <span>Selecciona com a mínim un tipus de caràcter.</span>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-500 flex items-start gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                    <span>Fa servir el generador criptogràfic del navegador (<span class="font-mono">crypto.getRandomValues</span>) i inclou com a mínim un caràcter de cada tipus seleccionat. No s'envia ni es guarda res.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resultat -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+                        <h2 class="font-semibold text-slate-800 text-sm">Contrasenya generada</h2>
+                    </div>
+                    <button id="btnCopy" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm transition-all active:scale-95">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        <span>Copiar</span>
+                    </button>
+                </div>
+                <div class="p-5 bg-slate-900">
+                    <div id="password" class="pw-out font-mono text-lg sm:text-xl leading-relaxed min-h-[2.5rem] selection:bg-indigo-500 selection:text-white" aria-live="polite"></div>
+                </div>
+                <div class="h-1.5 bg-slate-100"><div id="strengthBar" class="h-full transition-all duration-300" style="width:0%"></div></div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Entropia</span>
+                        <i data-lucide="sigma" class="w-4 h-4 text-indigo-500"></i>
+                    </div>
+                    <div id="kpiEntropy" class="text-2xl font-bold text-slate-900">—</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">bits aproximats</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Conjunt</span>
+                        <i data-lucide="type" class="w-4 h-4 text-blue-500"></i>
+                    </div>
+                    <div id="kpiPool" class="text-2xl font-bold text-slate-900">—</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">caràcters possibles</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Fortalesa</span>
+                        <i data-lucide="gauge" class="w-4 h-4 text-amber-500"></i>
+                    </div>
+                    <div id="kpiStrength" class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">—</div>
+                    <p class="text-[10px] text-slate-400 mt-1">segons l'entropia</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Força bruta</span>
+                        <i data-lucide="timer" class="w-4 h-4 text-emerald-500"></i>
+                    </div>
+                    <div id="kpiTime" class="text-base font-bold text-slate-900 leading-tight">—</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">a 10<sup>10</sup> intents/s</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="list" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Altres opcions amb la mateixa configuració</h2>
+                </div>
+                <ul id="alternatives" class="divide-y divide-slate-100"></ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- Peu de pàgina -->
+    <footer class="border-t border-slate-200 bg-white mt-6">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <p class="text-center sm:text-left">
+                © 2026 <a href="../" class="font-medium text-slate-700 hover:text-indigo-600">web-apps</a> ·
+                Llicència <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" rel="license" target="_blank" class="font-medium text-slate-700 hover:text-indigo-600">CC BY-NC-SA 4.0</a>
+            </p>
+            <div class="flex items-center gap-4">
+                <a href="../" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Totes les apps</a>
+                <a href="https://surikata3k.com" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="globe" class="w-3.5 h-3.5"></i> surikata3k.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="toast" class="fixed bottom-5 right-5 translate-y-20 opacity-0 transition-all duration-300 ease-out bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 text-xs z-50 pointer-events-none">
+        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMessage">Copiat</span>
+    </div>
+
+    <script>
+        const SETS = {
+            lower:   'abcdefghijklmnopqrstuvwxyz',
+            upper:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            digits:  '0123456789',
+            symbols: '!@#$%^&*()-_=+[]{};:,.<>?/~|`\'"'
+        };
+        const AMBIGUOUS = 'Il1O0o|`\'"';
+        const ALT_COUNT = 5;
+
+        const $ = id => document.getElementById(id);
+        const lengthInput = $('length');
+
+        // Enter aleatori uniforme a [0, n) sense biaix de mòdul (mostreig per rebuig)
+        function randInt(n) {
+            const limit = Math.floor(0x100000000 / n) * n;
+            const buf = new Uint32Array(1);
+            do { crypto.getRandomValues(buf); } while (buf[0] >= limit);
+            return buf[0] % n;
+        }
+
+        function activeSets() {
+            const avoid = $('optAmbiguous').checked;
+            const keys = [['optLower', 'lower'], ['optUpper', 'upper'], ['optDigits', 'digits'], ['optSymbols', 'symbols']];
+            return keys
+                .filter(([id]) => $(id).checked)
+                .map(([, k]) => avoid ? [...SETS[k]].filter(c => !AMBIGUOUS.includes(c)).join('') : SETS[k]);
+        }
+
+        function generate(length, sets) {
+            const all = sets.join('');
+            const chars = sets.map(s => s[randInt(s.length)]);           // un de cada tipus
+            while (chars.length < length) chars.push(all[randInt(all.length)]);
+            for (let i = chars.length - 1; i > 0; i--) {                 // barreja Fisher-Yates
+                const j = randInt(i + 1);
+                [chars[i], chars[j]] = [chars[j], chars[i]];
+            }
+            return chars.join('');
+        }
+
+        function colorize(container, pw) {
+            container.textContent = '';
+            for (const c of pw) {
+                const s = document.createElement('span');
+                s.textContent = c;
+                s.className = /[a-zA-Z]/.test(c) ? 'text-emerald-400' : /\d/.test(c) ? 'text-sky-400' : 'text-amber-400';
+                container.appendChild(s);
+            }
+        }
+
+        function classify(bits) {
+            if (bits < 28)  return { label: 'Molt feble',  pill: 'bg-rose-100 text-rose-700',       bar: '#e11d48' };
+            if (bits < 36)  return { label: 'Feble',       pill: 'bg-orange-100 text-orange-700',   bar: '#f97316' };
+            if (bits < 60)  return { label: 'Acceptable',  pill: 'bg-amber-100 text-amber-700',     bar: '#f59e0b' };
+            if (bits < 128) return { label: 'Forta',       pill: 'bg-emerald-100 text-emerald-700', bar: '#10b981' };
+            return             { label: 'Molt forta',  pill: 'bg-teal-100 text-teal-700',       bar: '#0d9488' };
+        }
+
+        function formatYearsLog10(log10Seconds) {
+            if (log10Seconds < 0) return 'Instantani';
+            const s = Math.pow(10, log10Seconds);
+            if (s < 60) return Math.round(s) + ' s';
+            if (s < 3600) return Math.round(s / 60) + ' min';
+            if (s < 86400) return Math.round(s / 3600) + ' h';
+            if (s < 31536000) return Math.round(s / 86400) + ' dies';
+            const yLog = log10Seconds - Math.log10(31536000);
+            if (yLog < 6) return Math.round(Math.pow(10, yLog)).toLocaleString('ca') + ' anys';
+            return '10^' + Math.floor(yLog) + ' anys';
+        }
+
+        let current = '';
+
+        function refresh() {
+            const length = Number(lengthInput.value);
+            $('lengthVal').textContent = length;
+            const sets = activeSets();
+            const error = sets.length === 0;
+            $('errorAlert').classList.toggle('hidden', !error);
+            if (error) {
+                current = '';
+                $('password').textContent = '—';
+                $('alternatives').innerHTML = '';
+                return;
+            }
+
+            current = generate(length, sets);
+            colorize($('password'), current);
+
+            const pool = sets.join('').length;
+            const bits = length * Math.log2(pool);
+            const cls = classify(bits);
+            $('kpiEntropy').textContent = Math.round(bits);
+            $('kpiPool').textContent = pool;
+            $('kpiStrength').textContent = cls.label;
+            $('kpiStrength').className = 'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ' + cls.pill;
+            $('strengthBar').style.width = Math.min(100, bits / 128 * 100) + '%';
+            $('strengthBar').style.background = cls.bar;
+            // Temps mitjà: la meitat de l'espai de cerca
+            $('kpiTime').textContent = formatYearsLog10(bits * Math.log10(2) - Math.log10(2) - 10);
+
+            const list = $('alternatives');
+            list.innerHTML = '';
+            for (let i = 0; i < ALT_COUNT; i++) {
+                const pw = generate(length, sets);
+                const li = document.createElement('li');
+                li.className = 'px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50';
+                const code = document.createElement('code');
+                code.className = 'pw-out flex-1 font-mono text-xs text-slate-700';
+                code.textContent = pw;
+                const btn = document.createElement('button');
+                btn.className = 'shrink-0 p-1.5 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors';
+                btn.title = 'Copiar';
+                btn.innerHTML = '<i data-lucide="copy" class="w-3.5 h-3.5"></i>';
+                btn.addEventListener('click', () => copyText(pw));
+                li.append(code, btn);
+                list.appendChild(li);
+            }
+            lucide.createIcons();
+        }
+
+        async function copyText(text) {
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Contrasenya copiada');
+            } catch {
+                showToast('No s\'ha pogut copiar');
+            }
+        }
+
+        function showToast(msg) {
+            const t = $('toast');
+            $('toastMessage').textContent = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 1800);
+        }
+
+        lengthInput.addEventListener('input', refresh);
+        ['optLower', 'optUpper', 'optDigits', 'optSymbols', 'optAmbiguous'].forEach(id => $(id).addEventListener('change', refresh));
+        $('btnRegenerate').addEventListener('click', refresh);
+        $('btnCopy').addEventListener('click', () => copyText(current));
+
+        lucide.createIcons();
+        refresh();
+    </script>
+</body>
+</html>
