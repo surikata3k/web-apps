@@ -13,7 +13,7 @@ Sense instal·lar res, sense servidor: obre-les i fes-les servir.
 
 ### 🎓 Aula i docència
 
-- **[⌨️ Dits Màgics](https://surikata3k.github.io/web-apps/dits_magics/)**<br>
+- **[⌨️ Dits Màgics](https://surikata3k.com/ditsmagics/)**<br>
   Mecanografia en català per a nens i nenes, amb 43 nivells i estrelles.
 - **[📅 Hores de RA](https://surikata3k.github.io/web-apps/calc_hours_ra/)**<br>
   Planifica i distribueix les hores dels resultats d'aprenentatge d'un mòdul.
@@ -21,9 +21,9 @@ Sense instal·lar res, sense servidor: obre-les i fes-les servir.
 ### 🔐 Contrasenyes i seguretat
 
 - **[✨ PassForge](https://surikata3k.github.io/web-apps/passgen/)**<br>
-  Deriva contrasenyes robustes amb PBKDF2 a partir d'una clau mestra i el lloc web.
-- **[🔑 Vaultless Password](https://surikata3k.github.io/web-apps/vaultless/)**<br>
-  Contrasenya determinista (SHA-256) per a cada servei a partir d'una clau mestra.
+  Una contrasenya diferent per a cada lloc a partir d'una sola clau mestra (PBKDF2, sense guardar res).
+- **[🔑 Generador de contrasenyes](https://surikata3k.github.io/web-apps/password_generator/)**<br>
+  Contrasenyes aleatòries i segures, amb la longitud i els tipus de caràcters que vulguis.
 - **[🛡️ Analitzador de contrasenya](https://surikata3k.github.io/web-apps/password_info/)**<br>
   Comprova com de forta és una contrasenya.
 - **[🧮 Calculadora d'entropia](https://surikata3k.github.io/web-apps/password_calculator/)**<br>
@@ -31,4 +31,6 @@ Sense instal·lar res, sense servidor: obre-les i fes-les servir.
 
 ---
 
-<sub>Fet amb HTML, CSS i JavaScript · Cada app és a la seva carpeta (<code>dits_magics/</code>, <code>passgen/</code>…) i la pàgina d'inici és <code>index.html</code> + <code>styles.css</code>.</sub>
+<sub>Fet amb HTML, CSS i JavaScript · Cada app és a la seva carpeta (<code>passgen/</code>, <code>password_generator/</code>…) i la pàgina d'inici és <code>index.html</code> + <code>styles.css</code>.</sub>
+
+<sub>© 2026 <a href="https://surikata3k.com">surikata3k</a> · Llicència <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca">CC BY-NC-SA 4.0</a> (vegeu <a href="LICENSE">LICENSE</a>).</sub>

@@ -1,714 +1,495 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" class="h-full bg-slate-50">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PassForge — Generador de contrasenyes</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #0a0a0f;
-      --surface: #13131a;
-      --border: #2a2a3a;
-      --accent: #00e5ff;
-      --accent2: #7c3aed;
-      --text: #e8e8f0;
-      --muted: #6b6b80;
-      --danger: #ff4466;
-      --success: #00e5a0;
-      --mono: 'Space Mono', monospace;
-      --sans: 'Syne', sans-serif;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      position: relative;
-      overflow-x: hidden;
-    }
-
-    /* Background grid */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Glow blob */
-    body::after {
-      content: '';
-      position: fixed;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
-      top: -100px;
-      right: -100px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 560px;
-    }
-
-    header {
-      margin-bottom: 2.5rem;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-    }
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .tagline {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      opacity: 0.6;
-    }
-
-    .field {
-      margin-bottom: 1.25rem;
-    }
-
-    label {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
-    }
-
-    label .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-    }
-
-    .input-wrap {
-      position: relative;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem 3rem 0.85rem 1rem;
-      color: var(--text);
-      font-family: var(--mono);
-      font-size: 0.9rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
-    }
-
-    .toggle-vis {
-      position: absolute;
-      right: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--muted);
-      font-size: 1rem;
-      transition: color 0.2s;
-      padding: 0.25rem;
-    }
-
-    .toggle-vis:hover { color: var(--accent); }
-
-    /* Options row */
-    .options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.75rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .option-group {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem 1rem;
-    }
-
-    .option-group label {
-      margin-bottom: 0.6rem;
-    }
-
-    .length-row {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    input[type="range"] {
-      flex: 1;
-      -webkit-appearance: none;
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      outline: none;
-    }
-
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      background: var(--accent);
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(0,229,255,0.5);
-      transition: transform 0.15s;
-    }
-
-    input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-    }
-
-    .length-val {
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      color: var(--accent);
-      min-width: 2ch;
-      text-align: right;
-    }
-
-    .checkboxes {
-      display: flex;
-      flex-direction: column;
-      gap: 0.45rem;
-    }
-
-    .check-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-    }
-
-    .check-item input[type="checkbox"] {
-      -webkit-appearance: none;
-      width: 16px; height: 16px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      background: var(--bg);
-      cursor: pointer;
-      position: relative;
-      transition: all 0.15s;
-      flex-shrink: 0;
-    }
-
-    .check-item input[type="checkbox"]:checked {
-      background: var(--accent);
-      border-color: var(--accent);
-    }
-
-    .check-item input[type="checkbox"]:checked::after {
-      content: '✓';
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%,-50%);
-      font-size: 0.65rem;
-      color: var(--bg);
-      font-weight: bold;
-    }
-
-    .check-item span {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      color: var(--text);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Generate button */
-    .btn-generate {
-      width: 100%;
-      padding: 1rem;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border: none;
-      border-radius: 10px;
-      color: #fff;
-      font-family: var(--sans);
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: opacity 0.2s, transform 0.15s;
-      margin-bottom: 1.5rem;
-    }
-
-    .btn-generate:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-generate:active { transform: translateY(0); }
-
-    .btn-generate::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-    }
-
-    /* Result */
-    .result-section {
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .result-section.visible { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .result-label {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .strength-badge {
-      font-size: 0.65rem;
-      padding: 0.2rem 0.6rem;
-      border-radius: 20px;
-      font-weight: 700;
-    }
-
-    .strength-strong { background: rgba(0,229,160,0.15); color: var(--success); }
-    .strength-medium { background: rgba(255,200,0,0.15); color: #ffc800; }
-    .strength-weak   { background: rgba(255,68,102,0.15); color: var(--danger); }
-
-    .result-box {
-      background: var(--bg);
-      border: 1px solid var(--accent);
-      border-radius: 10px;
-      padding: 1rem 1.25rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      box-shadow: 0 0 20px rgba(0,229,255,0.06);
-    }
-
-    .result-password {
-      font-family: var(--mono);
-      font-size: 1rem;
-      color: var(--accent);
-      letter-spacing: 0.05em;
-      word-break: break-all;
-      flex: 1;
-    }
-
-    .btn-copy {
-      background: rgba(0,229,255,0.1);
-      border: 1px solid rgba(0,229,255,0.3);
-      border-radius: 8px;
-      color: var(--accent);
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      padding: 0.5rem 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .btn-copy:hover {
-      background: rgba(0,229,255,0.2);
-      border-color: var(--accent);
-    }
-
-    .btn-copy.copied {
-      background: rgba(0,229,160,0.15);
-      border-color: var(--success);
-      color: var(--success);
-    }
-
-    .entropy-bar {
-      margin-top: 0.75rem;
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .entropy-fill {
-      height: 100%;
-      border-radius: 2px;
-      transition: width 0.5s ease;
-    }
-
-    .info-row {
-      margin-top: 0.6rem;
-      display: flex;
-      gap: 1rem;
-    }
-
-    .info-pill {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--muted);
-    }
-
-    .info-pill span {
-      color: var(--text);
-    }
-
-    footer {
-      margin-top: 1.5rem;
-      text-align: center;
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-    }
-
-    footer a { color: var(--muted); text-decoration: none; }
-
-    /* Error */
-    .error-msg {
-      display: none;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--danger);
-      margin-top: 0.5rem;
-      padding: 0.5rem 0.75rem;
-      background: rgba(255,68,102,0.08);
-      border-radius: 6px;
-      border-left: 3px solid var(--danger);
-    }
-
-    .error-msg.visible { display: block; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassForge — Contrasenyes deterministes</title>
+    <meta name="description" content="Deriva una contrasenya diferent per a cada lloc a partir d'una única contrasenya mestra. Sense guardar res.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><rect x='7' y='7' width='8' height='8' rx='2' fill='white'/><rect x='17' y='7' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='7' y='17' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='17' y='17' width='8' height='8' rx='2' fill='white' opacity='.45'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } }
+        }
+    </script>
+    <style>
+        input[type=range] { accent-color: #4f46e5; }
+        .pw-out { word-break: break-all; }
+    </style>
 </head>
-<body>
+<body class="min-h-full flex flex-col font-sans text-slate-800 antialiased bg-slate-50">
 
-<div class="container">
-  <header>
-    <div class="logo">
-      <div class="logo-icon">🔐</div>
-      <h1>PassForge</h1>
-    </div>
-    <p class="tagline">// contrasenyes deterministes · 100% local · sense servidors</p>
-  </header>
-
-  <div class="card">
-    <!-- Contrasenya mestra -->
-    <div class="field">
-      <label><span class="dot"></span> Contrasenya mestra</label>
-      <div class="input-wrap">
-        <input type="password" id="master" placeholder="La teva contrasenya secreta…" autocomplete="new-password"/>
-        <button class="toggle-vis" id="toggleMaster" title="Mostrar/amagar">👁</button>
-      </div>
-    </div>
-
-    <!-- Nom del lloc -->
-    <div class="field">
-      <label><span class="dot" style="background:var(--accent2)"></span> Lloc web</label>
-      <div class="input-wrap">
-        <input type="text" id="site" placeholder="p. ex.: github.com, netflix, feina…" autocomplete="off"/>
-      </div>
-    </div>
-
-    <!-- Opcions -->
-    <div class="options">
-      <!-- Longitud -->
-      <div class="option-group">
-        <label><span class="dot"></span> Longitud</label>
-        <div class="length-row">
-          <input type="range" id="length" min="8" max="64" value="20"/>
-          <span class="length-val" id="lengthVal">20</span>
+    <!-- Capçalera -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-200">
+                    <i data-lucide="sparkles" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">PassForge</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Una contrasenya per a cada lloc a partir d'una sola clau mestra</p>
+                </div>
+            </div>
+            <button id="btnClear" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors">
+                <i data-lucide="eraser" class="w-4 h-4"></i>
+                <span>Esborrar-ho tot</span>
+            </button>
         </div>
-      </div>
+    </header>
 
-      <!-- Caràcters -->
-      <div class="option-group">
-        <label><span class="dot"></span> Incloure</label>
-        <div class="checkboxes">
-          <label class="check-item">
-            <input type="checkbox" id="chkUpper" checked/>
-            <span>Majúscules</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" id="chkNumbers" checked/>
-            <span>Números</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" id="chkSymbols" checked/>
-            <span>Símbols</span>
-          </label>
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Entrada -->
+        <section class="lg:col-span-5">
+            <form id="form" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" autocomplete="off">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="key-round" class="w-5 h-5 text-indigo-600"></i>
+                        <h2 class="font-semibold text-slate-800 text-sm">Dades</h2>
+                    </div>
+                    <span class="text-xs text-slate-400">100% local</span>
+                </div>
+
+                <div class="p-4 flex flex-col gap-4">
+                    <!-- Contrasenya mestra -->
+                    <div>
+                        <label for="master" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Contrasenya mestra</label>
+                        <div class="mt-1.5 relative">
+                            <input id="master" type="password" autocomplete="new-password" spellcheck="false" placeholder="La teva clau secreta"
+                                class="w-full pl-3 pr-24 py-2.5 text-sm bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
+                            <div class="absolute inset-y-0 right-2 flex items-center gap-1">
+                                <span id="fingerprint" class="flex items-center gap-0.5" title="Empremta visual de la contrasenya mestra"></span>
+                                <button type="button" id="toggleMaster" class="p-1.5 rounded-md text-slate-400 hover:text-slate-700" title="Mostrar o amagar">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Les tres icones són una empremta: si sempre veus les mateixes, l'has escrit bé.</p>
+                    </div>
+
+                    <!-- Lloc -->
+                    <div>
+                        <label for="site" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Lloc web o servei</label>
+                        <input id="site" type="text" spellcheck="false" placeholder="p. ex. github.com, netflix, feina"
+                            class="mt-1.5 w-full px-3 py-2.5 text-sm bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
+                        <p id="siteHint" class="text-[11px] text-slate-400 mt-1 min-h-[1rem]"></p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-2">
+                            <label for="login" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Usuari <span class="normal-case font-normal text-slate-400">(opcional)</span></label>
+                            <input id="login" type="text" spellcheck="false" placeholder="nom o correu"
+                                class="mt-1.5 w-full px-3 py-2.5 text-sm bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label for="counter" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Versió</label>
+                            <input id="counter" type="number" min="1" max="9999" value="1"
+                                class="mt-1.5 w-full px-3 py-2.5 text-sm bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all">
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 -mt-2">Puja la versió quan un lloc t'obligui a canviar la contrasenya.</p>
+
+                    <!-- Opcions -->
+                    <div class="border-t border-dashed border-slate-200 pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="length" class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Longitud</label>
+                            <span id="lengthVal" class="font-mono text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-md px-2 py-0.5">20</span>
+                        </div>
+                        <input id="length" type="range" min="8" max="64" value="20" class="w-full">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                            <input type="checkbox" id="optLower" checked class="accent-indigo-600 w-4 h-4"> Minúscules <span class="ml-auto font-mono text-xs text-slate-400">a-z</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                            <input type="checkbox" id="optUpper" checked class="accent-indigo-600 w-4 h-4"> Majúscules <span class="ml-auto font-mono text-xs text-slate-400">A-Z</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                            <input type="checkbox" id="optDigits" checked class="accent-indigo-600 w-4 h-4"> Números <span class="ml-auto font-mono text-xs text-slate-400">0-9</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer text-sm">
+                            <input type="checkbox" id="optSymbols" checked class="accent-indigo-600 w-4 h-4"> Símbols <span class="ml-auto font-mono text-xs text-slate-400">!@#</span>
+                        </label>
+                    </div>
+
+                    <div id="errorAlert" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-rose-800 text-xs">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 shrink-0"></i>
+                        <span id="errorMessage"></span>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+                    <button type="submit" id="btnGenerate" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-60 text-white font-medium text-sm rounded-xl shadow-md shadow-indigo-100 flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="wand-sparkles" class="w-4 h-4"></i>
+                        <span id="btnGenerateText">Generar contrasenya</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Resultat -->
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+                        <h2 class="font-semibold text-slate-800 text-sm">Contrasenya per a <span id="resultSite" class="font-mono text-indigo-700">—</span></h2>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="btnHide" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm transition-all active:scale-95">
+                            <i data-lucide="eye-off" class="w-3.5 h-3.5"></i>
+                            <span id="btnHideText">Amagar</span>
+                        </button>
+                        <button id="btnCopy" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shadow-sm transition-all active:scale-95">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            <span>Copiar</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-5 bg-slate-900">
+                    <div id="password" class="pw-out font-mono text-lg sm:text-xl leading-relaxed text-slate-500 min-h-[2.5rem] selection:bg-indigo-500 selection:text-white" aria-live="polite">// Omple les dades i prem «Generar contrasenya»</div>
+                </div>
+                <div class="h-1.5 bg-slate-100"><div id="strengthBar" class="h-full transition-all duration-300" style="width:0%"></div></div>
+                <p id="autoClear" class="hidden px-4 py-2 text-[11px] text-slate-400 bg-slate-50/50 border-t border-slate-100"></p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Entropia</span>
+                        <i data-lucide="sigma" class="w-4 h-4 text-indigo-500"></i>
+                    </div>
+                    <div id="kpiEntropy" class="text-2xl font-bold text-slate-900">—</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">bits aproximats</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Fortalesa</span>
+                        <i data-lucide="gauge" class="w-4 h-4 text-amber-500"></i>
+                    </div>
+                    <div id="kpiStrength" class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">Pendent</div>
+                    <p class="text-[10px] text-slate-400 mt-1">segons l'entropia</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Iteracions</span>
+                        <i data-lucide="repeat" class="w-4 h-4 text-blue-500"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900">600k</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">PBKDF2-SHA256</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between text-slate-400 mb-2">
+                        <span class="text-[11px] font-medium uppercase tracking-wider">Derivació</span>
+                        <i data-lucide="timer" class="w-4 h-4 text-emerald-500"></i>
+                    </div>
+                    <div id="kpiTime" class="text-2xl font-bold text-slate-900">—</div>
+                    <p class="text-[10px] text-slate-400 mt-0.5">temps al teu equip</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="info" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Com funciona</h2>
+                </div>
+                <ul class="p-4 text-xs text-slate-600 leading-relaxed space-y-2">
+                    <li class="flex gap-2"><i data-lucide="repeat-2" class="w-4 h-4 text-indigo-500 shrink-0"></i><span>Amb les mateixes dades i opcions sempre obtens la mateixa contrasenya, a qualsevol dispositiu. No cal guardar-la enlloc.</span></li>
+                    <li class="flex gap-2"><i data-lucide="lock" class="w-4 h-4 text-indigo-500 shrink-0"></i><span>La clau mestra passa per <strong>PBKDF2-SHA256 amb 600.000 iteracions</strong>: cada intent d'endevinar-la és molt costós, encara que algú obtingui una de les contrasenyes generades.</span></li>
+                    <li class="flex gap-2"><i data-lucide="notebook-pen" class="w-4 h-4 text-indigo-500 shrink-0"></i><span>Si canvies qualsevol dada o opció (longitud, tipus de caràcters, usuari, versió), la contrasenya canvia. Pots apuntar les opcions de cada lloc: no són secretes.</span></li>
+                    <li class="flex gap-2"><i data-lucide="globe" class="w-4 h-4 text-indigo-500 shrink-0"></i><span>El lloc es normalitza: <span class="font-mono">https://www.GitHub.com/login</span> i <span class="font-mono">github.com</span> donen el mateix resultat.</span></li>
+                    <li class="flex gap-2"><i data-lucide="triangle-alert" class="w-4 h-4 text-amber-500 shrink-0"></i><span>Si oblides la clau mestra, no hi ha manera de recuperar les contrasenyes. Tria'n una de llarga i fàcil de recordar.</span></li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- Peu de pàgina -->
+    <footer class="border-t border-slate-200 bg-white mt-6">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <p class="text-center sm:text-left">
+                © 2026 <a href="../" class="font-medium text-slate-700 hover:text-indigo-600">web-apps</a> ·
+                Llicència <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" rel="license" target="_blank" class="font-medium text-slate-700 hover:text-indigo-600">CC BY-NC-SA 4.0</a>
+            </p>
+            <div class="flex items-center gap-4">
+                <a href="../" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Totes les apps</a>
+                <a href="https://surikata3k.com" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="globe" class="w-3.5 h-3.5"></i> surikata3k.com</a>
+            </div>
         </div>
-      </div>
+    </footer>
+
+    <div id="toast" class="fixed bottom-5 right-5 translate-y-20 opacity-0 transition-all duration-300 ease-out bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 text-xs z-50 pointer-events-none">
+        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMessage">Copiat</span>
     </div>
 
-    <div class="error-msg" id="errorMsg">⚠ Omple la contrasenya mestra i el lloc web.</div>
+    <script>
+        /*
+         * PassForge v2
+         *  1. clau = PBKDF2-SHA256(mestra NFC, sal = "passforge-v2" ␟ lloc ␟ usuari ␟ versió, 600.000 iteracions, 256 bits)
+         *  2. flux de bytes = HMAC-SHA256(clau, comptador de bloc de 32 bits)
+         *  3. un caràcter de cada tipus triat + la resta del conjunt complet, amb mostreig per rebuig (sense biaix)
+         *  4. barreja Fisher-Yates determinista amb el mateix flux
+         */
+        const VERSION_TAG = 'passforge-v2';
+        const ITERATIONS = 600000;
+        const SETS = {
+            lower:   'abcdefghijklmnopqrstuvwxyz',
+            upper:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            digits:  '0123456789',
+            symbols: '!@#$%^&*()-_=+[]{}|;:,.<>?'
+        };
+        const AUTO_CLEAR_SECONDS = 60;
 
-    <button class="btn-generate" id="btnGenerate">⚡ Generar contrasenya</button>
+        const $ = id => document.getElementById(id);
+        const enc = new TextEncoder();
 
-    <!-- Resultat -->
-    <div class="result-section" id="resultSection">
-      <div class="result-label">
-        <span>contrasenya generada</span>
-        <span class="strength-badge" id="strengthBadge"></span>
-      </div>
-      <div class="result-box">
-        <div class="result-password" id="resultPassword"></div>
-        <button class="btn-copy" id="btnCopy">Copiar</button>
-      </div>
-      <div class="entropy-bar">
-        <div class="entropy-fill" id="entropyFill"></div>
-      </div>
-      <div class="info-row">
-        <div class="info-pill">Entropia: <span id="entropyVal">—</span> bits</div>
-        <div class="info-pill">Longitud: <span id="lenVal">—</span> caràcters</div>
-        <div class="info-pill">PBKDF2-SHA256</div>
-      </div>
-    </div>
-  </div>
+        function normalizeSite(raw) {
+            let s = raw.trim().toLowerCase();
+            s = s.replace(/^[a-z][a-z0-9+.-]*:\/\//, '');  // protocol
+            s = s.split(/[\/?#]/)[0];                        // camí i paràmetres
+            s = s.replace(/^[^@]*@/, '');                    // usuari@ dins l'URL
+            s = s.replace(/:\d+$/, '');                      // port
+            s = s.replace(/^www\d*\./, '');                  // www.
+            return s;
+        }
 
-  <footer>
-    Tot el procés passa al teu navegador. Mai no s'envien dades a cap servidor.
-  </footer>
-</div>
+        class ByteStream {
+            constructor(hmacKey) { this.key = hmacKey; this.block = 0; this.buf = new Uint8Array(0); this.pos = 0; }
+            async byte() {
+                if (this.pos >= this.buf.length) {
+                    const info = new Uint8Array(4);
+                    new DataView(info.buffer).setUint32(0, this.block++);
+                    this.buf = new Uint8Array(await crypto.subtle.sign('HMAC', this.key, info));
+                    this.pos = 0;
+                }
+                return this.buf[this.pos++];
+            }
+            async int(n) {                       // uniforme a [0, n), n <= 256
+                const limit = 256 - (256 % n);
+                let b;
+                do { b = await this.byte(); } while (b >= limit);
+                return b % n;
+            }
+        }
 
-<script>
-  // Mostrar/amagar la contrasenya mestra
-  const toggleMaster = document.getElementById('toggleMaster');
-  const masterInput = document.getElementById('master');
-  toggleMaster.addEventListener('click', () => {
-    const isPass = masterInput.type === 'password';
-    masterInput.type = isPass ? 'text' : 'password';
-    toggleMaster.textContent = isPass ? '🙈' : '👁';
-  });
+        async function derivePassword({ master, site, login, counter, length, sets }) {
+            const baseKey = await crypto.subtle.importKey('raw', enc.encode(master.normalize('NFC')), 'PBKDF2', false, ['deriveBits']);
+            const salt = enc.encode([VERSION_TAG, site, login, String(counter)].join('\u001f'));
+            const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' }, baseKey, 256);
+            const hmacKey = await crypto.subtle.importKey('raw', bits, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+            const stream = new ByteStream(hmacKey);
 
-  // Slider de longitud
-  const lengthSlider = document.getElementById('length');
-  const lengthVal = document.getElementById('lengthVal');
-  lengthSlider.addEventListener('input', () => {
-    lengthVal.textContent = lengthSlider.value;
-  });
+            const all = sets.join('');
+            const chars = [];
+            for (const s of sets) chars.push(s[await stream.int(s.length)]);
+            while (chars.length < length) chars.push(all[await stream.int(all.length)]);
+            for (let i = chars.length - 1; i > 0; i--) {
+                const j = await stream.int(i + 1);
+                [chars[i], chars[j]] = [chars[j], chars[i]];
+            }
+            return chars.join('');
+        }
 
-  // Generació amb PBKDF2
-  async function derivePassword(master, site, length, useUpper, useNumbers, useSymbols) {
-    const enc = new TextEncoder();
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw', enc.encode(master), { name: 'PBKDF2' }, false, ['deriveBits']
-    );
+        // ---------- Empremta visual de la contrasenya mestra ----------
+        const FP_ICONS = ['heart', 'star', 'sun', 'moon', 'cloud', 'leaf', 'anchor', 'bell', 'flame', 'gem', 'music', 'umbrella', 'zap', 'feather', 'coffee', 'rocket'];
+        const FP_COLORS = ['#e11d48', '#ea580c', '#ca8a04', '#16a34a', '#0891b2', '#2563eb', '#7c3aed', '#db2777'];
+        let fpTimer;
+        async function updateFingerprint() {
+            const box = $('fingerprint');
+            const master = $('master').value;
+            if (!master) { box.innerHTML = ''; return; }
+            const h = new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode('passforge-fp\u001f' + master.normalize('NFC'))));
+            box.innerHTML = [0, 1, 2].map(i =>
+                `<i data-lucide="${FP_ICONS[h[i] % FP_ICONS.length]}" class="w-4 h-4" style="color:${FP_COLORS[h[i + 3] % FP_COLORS.length]}"></i>`
+            ).join('');
+            lucide.createIcons();
+        }
 
-    const salt = enc.encode('passforge:' + site.toLowerCase().trim());
-    const bits = await crypto.subtle.deriveBits(
-      { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' },
-      keyMaterial, 256
-    );
+        // ---------- Interfície ----------
+        function classify(bits) {
+            if (bits < 28)  return { label: 'Molt feble',  pill: 'bg-rose-100 text-rose-700',       bar: '#e11d48' };
+            if (bits < 36)  return { label: 'Feble',       pill: 'bg-orange-100 text-orange-700',   bar: '#f97316' };
+            if (bits < 60)  return { label: 'Acceptable',  pill: 'bg-amber-100 text-amber-700',     bar: '#f59e0b' };
+            if (bits < 128) return { label: 'Forta',       pill: 'bg-emerald-100 text-emerald-700', bar: '#10b981' };
+            return             { label: 'Molt forta',  pill: 'bg-teal-100 text-teal-700',       bar: '#0d9488' };
+        }
 
-    const bytes = new Uint8Array(bits);
+        function activeSets() {
+            return [['optLower', 'lower'], ['optUpper', 'upper'], ['optDigits', 'digits'], ['optSymbols', 'symbols']]
+                .filter(([id]) => $(id).checked).map(([, k]) => SETS[k]);
+        }
 
-    // Construir charset
-    let charset = 'abcdefghijklmnopqrstuvwxyz';
-    if (useUpper) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    if (useNumbers) charset += '0123456789';
-    if (useSymbols) charset += '!@#$%^&*()-_=+[]{}|;:,.<>?';
+        function showError(msg) {
+            $('errorMessage').textContent = msg;
+            $('errorAlert').classList.remove('hidden');
+        }
 
-    // Garantir com a mínim un caràcter de cada categoria activada
-    const required = [];
-    const lower = 'abcdefghijklmnopqrstuvwxyz';
-    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const digits = '0123456789';
-    const symbols = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+        let current = '';
+        let hidden = false;
+        let clearTimer;
 
-    required.push(lower[bytes[0] % lower.length]);
-    if (useUpper)   required.push(upper[bytes[1] % upper.length]);
-    if (useNumbers) required.push(digits[bytes[2] % digits.length]);
-    if (useSymbols) required.push(symbols[bytes[3] % symbols.length]);
+        function renderPassword() {
+            const box = $('password');
+            box.textContent = '';
+            if (!current) return;
+            if (hidden) {
+                box.className = 'pw-out font-mono text-lg sm:text-xl leading-relaxed text-slate-500 min-h-[2.5rem]';
+                box.textContent = '•'.repeat(current.length);
+                return;
+            }
+            box.className = 'pw-out font-mono text-lg sm:text-xl leading-relaxed min-h-[2.5rem] selection:bg-indigo-500 selection:text-white';
+            for (const c of current) {
+                const s = document.createElement('span');
+                s.textContent = c;
+                s.className = /[a-zA-Z]/.test(c) ? 'text-emerald-400' : /\d/.test(c) ? 'text-sky-400' : 'text-amber-400';
+                box.appendChild(s);
+            }
+        }
 
-    // Omplir fins a la longitud desitjada
-    let password = '';
-    for (let i = 0; i < length; i++) {
-      password += charset[bytes[i % bytes.length] % charset.length];
-    }
+        function resetResult(message) {
+            current = '';
+            clearInterval(clearTimer);
+            $('autoClear').classList.add('hidden');
+            const box = $('password');
+            box.className = 'pw-out font-mono text-lg sm:text-xl leading-relaxed text-slate-500 min-h-[2.5rem]';
+            box.textContent = message;
+            $('resultSite').textContent = '—';
+            $('kpiEntropy').textContent = '—';
+            $('kpiStrength').textContent = 'Pendent';
+            $('kpiStrength').className = 'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600';
+            $('strengthBar').style.width = '0%';
+        }
 
-    // Inserir els obligatoris en posicions fixes (fent servir bytes com a desplaçaments)
-    let arr = password.split('');
-    required.forEach((ch, idx) => {
-      const pos = (bytes[20 + idx] % length);
-      arr[pos] = ch;
-    });
+        function startAutoClear() {
+            let left = AUTO_CLEAR_SECONDS;
+            const note = $('autoClear');
+            note.classList.remove('hidden');
+            note.textContent = `Per seguretat, el resultat s'esborrarà d'aquí a ${left} s.`;
+            clearInterval(clearTimer);
+            clearTimer = setInterval(() => {
+                left--;
+                if (left <= 0) { resetResult('// Resultat esborrat. Torna a generar-lo si el necessites.'); return; }
+                note.textContent = `Per seguretat, el resultat s'esborrarà d'aquí a ${left} s.`;
+            }, 1000);
+        }
 
-    return arr.join('');
-  }
+        async function generate(e) {
+            e?.preventDefault();
+            $('errorAlert').classList.add('hidden');
 
-  function calcEntropy(length, charset) {
-    return Math.floor(length * Math.log2(charset));
-  }
+            const master = $('master').value;
+            const site = normalizeSite($('site').value);
+            const login = $('login').value.trim().toLowerCase();
+            const counter = Math.max(1, Math.floor(Number($('counter').value) || 1));
+            const length = Number($('length').value);
+            const sets = activeSets();
 
-  function getCharsetSize(useUpper, useNumbers, useSymbols) {
-    let s = 26;
-    if (useUpper)   s += 26;
-    if (useNumbers) s += 10;
-    if (useSymbols) s += 28;
-    return s;
-  }
+            if (!master) return showError('Escriu la contrasenya mestra.');
+            if (!site) return showError('Escriu el lloc web o el servei.');
+            if (!sets.length) return showError('Selecciona com a mínim un tipus de caràcter.');
+            if (master.length < 8) showError('Consell: una contrasenya mestra de menys de 8 caràcters és fàcil d\'endevinar.');
 
-  // Botó generar
-  document.getElementById('btnGenerate').addEventListener('click', async () => {
-    const master = document.getElementById('master').value.trim();
-    const site = document.getElementById('site').value.trim();
-    const errorMsg = document.getElementById('errorMsg');
+            const btn = $('btnGenerate');
+            btn.disabled = true;
+            $('btnGenerateText').textContent = 'Derivant…';
+            const t0 = performance.now();
+            try {
+                current = await derivePassword({ master, site, login, counter, length, sets });
+            } catch (err) {
+                console.error(err);
+                showError('No s\'ha pogut generar la contrasenya. Aquest navegador és compatible amb Web Crypto?');
+                current = '';
+            }
+            const ms = performance.now() - t0;
+            btn.disabled = false;
+            $('btnGenerateText').textContent = 'Generar contrasenya';
+            if (!current) return;
 
-    if (!master || !site) {
-      errorMsg.classList.add('visible');
-      return;
-    }
-    errorMsg.classList.remove('visible');
+            hidden = false;
+            $('btnHideText').textContent = 'Amagar';
+            renderPassword();
+            $('resultSite').textContent = site + (login ? ` · ${login}` : '') + (counter > 1 ? ` · v${counter}` : '');
 
-    const length = parseInt(lengthSlider.value);
-    const useUpper = document.getElementById('chkUpper').checked;
-    const useNumbers = document.getElementById('chkNumbers').checked;
-    const useSymbols = document.getElementById('chkSymbols').checked;
+            const bits = length * Math.log2(sets.join('').length);
+            const cls = classify(bits);
+            $('kpiEntropy').textContent = Math.round(bits);
+            $('kpiStrength').textContent = cls.label;
+            $('kpiStrength').className = 'inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ' + cls.pill;
+            $('strengthBar').style.width = Math.min(100, bits / 128 * 100) + '%';
+            $('strengthBar').style.background = cls.bar;
+            $('kpiTime').textContent = ms < 1000 ? Math.round(ms) + ' ms' : (ms / 1000).toFixed(1) + ' s';
+            startAutoClear();
+        }
 
-    const btn = document.getElementById('btnGenerate');
-    btn.textContent = '⏳ Derivant…';
-    btn.disabled = true;
+        function showToast(msg) {
+            const t = $('toast');
+            $('toastMessage').textContent = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 1800);
+        }
 
-    try {
-      const password = await derivePassword(master, site, length, useUpper, useNumbers, useSymbols);
+        // ---------- Esdeveniments ----------
+        $('form').addEventListener('submit', generate);
 
-      document.getElementById('resultPassword').textContent = password;
+        $('length').addEventListener('input', () => { $('lengthVal').textContent = $('length').value; });
 
-      const charsetSize = getCharsetSize(useUpper, useNumbers, useSymbols);
-      const entropy = calcEntropy(length, charsetSize);
-      document.getElementById('entropyVal').textContent = entropy;
-      document.getElementById('lenVal').textContent = length;
+        // Qualsevol canvi invalida el resultat anterior, per evitar confusions
+        ['master', 'site', 'login', 'counter', 'length', 'optLower', 'optUpper', 'optDigits', 'optSymbols'].forEach(id => {
+            $(id).addEventListener('input', () => { if (current) resetResult('// Les dades han canviat: torna a generar la contrasenya.'); });
+        });
 
-      // Barra d'entropia
-      const pct = Math.min(100, (entropy / 128) * 100);
-      const fill = document.getElementById('entropyFill');
-      fill.style.width = pct + '%';
+        $('master').addEventListener('input', () => { clearTimeout(fpTimer); fpTimer = setTimeout(updateFingerprint, 400); });
 
-      let color, label, cls;
-      if (entropy >= 80) { color = 'var(--success)'; label = '🔒 Forta'; cls = 'strength-strong'; }
-      else if (entropy >= 50) { color = '#ffc800'; label = '⚠ Mitjana'; cls = 'strength-medium'; }
-      else { color = 'var(--danger)'; label = '⛔ Feble'; cls = 'strength-weak'; }
+        $('site').addEventListener('input', () => {
+            const raw = $('site').value.trim();
+            const norm = normalizeSite(raw);
+            $('siteHint').textContent = raw && norm !== raw ? `Es farà servir: ${norm}` : '';
+        });
 
-      fill.style.background = color;
-      const badge = document.getElementById('strengthBadge');
-      badge.textContent = label;
-      badge.className = 'strength-badge ' + cls;
+        $('toggleMaster').addEventListener('click', () => {
+            const input = $('master');
+            const show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
+            $('toggleMaster').innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+        });
 
-      document.getElementById('resultSection').classList.add('visible');
-    } catch(e) {
-      errorMsg.textContent = '❌ Error en generar la contrasenya. Torna-ho a provar.';
-      errorMsg.classList.add('visible');
-    }
+        $('btnHide').addEventListener('click', () => {
+            if (!current) return;
+            hidden = !hidden;
+            $('btnHideText').textContent = hidden ? 'Mostrar' : 'Amagar';
+            renderPassword();
+        });
 
-    btn.textContent = '⚡ Generar contrasenya';
-    btn.disabled = false;
-  });
+        $('btnCopy').addEventListener('click', async () => {
+            if (!current) return;
+            try {
+                await navigator.clipboard.writeText(current);
+                showToast('Contrasenya copiada');
+            } catch {
+                showToast('No s\'ha pogut copiar');
+            }
+        });
 
-  // Copiar al porta-retalls
-  document.getElementById('btnCopy').addEventListener('click', async () => {
-    const pwd = document.getElementById('resultPassword').textContent;
-    const btn = document.getElementById('btnCopy');
-    try {
-      await navigator.clipboard.writeText(pwd);
-      btn.textContent = '✓ Copiat';
-      btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = 'Copiar';
-        btn.classList.remove('copied');
-      }, 2000);
-    } catch {
-      btn.textContent = 'Error';
-    }
-  });
+        $('btnClear').addEventListener('click', () => {
+            $('form').reset();
+            $('lengthVal').textContent = $('length').value;
+            $('siteHint').textContent = '';
+            $('fingerprint').innerHTML = '';
+            $('errorAlert').classList.add('hidden');
+            $('kpiTime').textContent = '—';
+            resetResult('// Omple les dades i prem «Generar contrasenya»');
+        });
 
-  // Generar en prémer Enter
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') document.getElementById('btnGenerate').click();
-  });
-</script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>
