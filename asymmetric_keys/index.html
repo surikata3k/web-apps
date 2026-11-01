@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ca" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de clau asimètrica</title>
+    <meta name="description" content="Aprèn com funciona la criptografia de clau asimètrica (RSA): genera un parell de claus, xifra, signa i intenta trencar-la, pas a pas i amb nombres petits.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><rect x='7' y='7' width='8' height='8' rx='2' fill='white'/><rect x='17' y='7' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='7' y='17' width='8' height='8' rx='2' fill='white' opacity='.7'/><rect x='17' y='17' width='8' height='8' rx='2' fill='white' opacity='.45'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } }
+        }
+    </script>
+    <style>
+        .tab[aria-selected="true"] { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+        .tab[aria-selected="true"] .tab-num { background: #fff; color: #4f46e5; }
+        .pub { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
+        .priv { color: #be123c; background: #fff1f2; border-color: #fecdd3; }
+        .chip { display: inline-flex; align-items: center; gap: .3rem; border: 1px solid; border-radius: .5rem; padding: .05rem .45rem; font-family: 'JetBrains Mono', monospace; font-size: .8rem; white-space: nowrap; }
+        .num-strip span { display: inline-block; margin: 0 .35rem .35rem 0; padding: .1rem .4rem; border-radius: .35rem; background: #f1f5f9; }
+        @keyframes travel { from { left: 0; } to { left: calc(100% - 1.75rem); } }
+        .packet { animation: travel 1.4s ease-in-out forwards; }
+        @media (prefers-reduced-motion: reduce) { .packet { animation: none; left: calc(100% - 1.75rem); } }
+    </style>
+</head>
+<body class="min-h-full flex flex-col font-sans text-slate-800 antialiased bg-slate-50">
+
+    <!-- Capçalera -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-md shadow-indigo-200">
+                    <i data-lucide="key-round" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">Simulador de clau asimètrica</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Com funciona RSA: claus, xifratge, signatura i seguretat</p>
+                </div>
+            </div>
+            <button id="btnNewKeys" aria-label="Claus noves" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors">
+                <i data-lucide="dices" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Claus noves</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+
+        <!-- Personatges -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4" aria-label="Personatges">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-3">
+                <div class="shrink-0 w-11 h-11 rounded-xl bg-sky-100 text-sky-700 grid place-items-center"><i data-lucide="user" class="w-6 h-6"></i></div>
+                <div>
+                    <h2 class="font-semibold text-slate-900">Anna</h2>
+                    <p class="text-sm text-slate-600">Vol enviar un missatge secret a Biel.</p>
+                    <p class="mt-1.5 text-xs text-slate-500">Té: <span class="chip pub"><i data-lucide="lock-open" class="w-3 h-3"></i>pública de Biel</span></p>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-3">
+                <div class="shrink-0 w-11 h-11 rounded-xl bg-amber-100 text-amber-700 grid place-items-center"><i data-lucide="eye" class="w-6 h-6"></i></div>
+                <div>
+                    <h2 class="font-semibold text-slate-900">Eva</h2>
+                    <p class="text-sm text-slate-600">Escolta tot el que passa pel canal (la xarxa).</p>
+                    <p class="mt-1.5 text-xs text-slate-500">Té: <span class="chip pub"><i data-lucide="lock-open" class="w-3 h-3"></i>pública de Biel</span></p>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex gap-3">
+                <div class="shrink-0 w-11 h-11 rounded-xl bg-violet-100 text-violet-700 grid place-items-center"><i data-lucide="user" class="w-6 h-6"></i></div>
+                <div>
+                    <h2 class="font-semibold text-slate-900">Biel</h2>
+                    <p class="text-sm text-slate-600">Ha generat un parell de claus.</p>
+                    <p class="mt-1.5 text-xs text-slate-500 flex flex-wrap gap-1 items-center">Té: <span class="chip pub"><i data-lucide="lock-open" class="w-3 h-3"></i>pública</span> <span class="chip priv"><i data-lucide="key" class="w-3 h-3"></i>privada</span></p>
+                </div>
+            </div>
+        </section>
+
+        <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-sm text-indigo-900 flex gap-3">
+            <i data-lucide="lightbulb" class="w-5 h-5 shrink-0 text-indigo-600 mt-0.5"></i>
+            <p><strong>La idea en una frase:</strong> la clau pública és com un <strong>cadenat obert</strong> que Biel reparteix a tothom; qualsevol el pot tancar, però només la <strong>clau privada</strong> de Biel l'obre. Les dues claus van lligades matemàticament, però de la pública no se'n pot deduir la privada.</p>
+        </div>
+
+        <!-- Pestanyes -->
+        <nav class="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="Passos">
+            <button class="tab flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-indigo-300" role="tab" data-tab="keys" aria-selected="true"><span class="tab-num w-6 h-6 rounded-full bg-slate-100 grid place-items-center text-xs">1</span>Les claus</button>
+            <button class="tab flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-indigo-300" role="tab" data-tab="encrypt" aria-selected="false"><span class="tab-num w-6 h-6 rounded-full bg-slate-100 grid place-items-center text-xs">2</span>Xifrar</button>
+            <button class="tab flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-indigo-300" role="tab" data-tab="sign" aria-selected="false"><span class="tab-num w-6 h-6 rounded-full bg-slate-100 grid place-items-center text-xs">3</span>Signar</button>
+            <button class="tab flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-indigo-300" role="tab" data-tab="break" aria-selected="false"><span class="tab-num w-6 h-6 rounded-full bg-slate-100 grid place-items-center text-xs">4</span>Trencar-la?</button>
+        </nav>
+
+        <!-- 1. CLAUS -->
+        <section id="panel-keys" class="panel grid grid-cols-1 lg:grid-cols-12 gap-6" role="tabpanel">
+            <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="settings-2" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Biel genera les seves claus</h2>
+                </div>
+                <div class="p-5 flex flex-col gap-4">
+                    <p class="text-sm text-slate-600">Tria dos nombres primers diferents. A la vida real tenen centenars de xifres; aquí són petits perquè puguis seguir els càlculs.</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Primer p
+                            <select id="selP" class="mt-1 w-full font-mono text-sm bg-white rounded-xl border border-slate-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none"></select>
+                        </label>
+                        <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Primer q
+                            <select id="selQ" class="mt-1 w-full font-mono text-sm bg-white rounded-xl border border-slate-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none"></select>
+                        </label>
+                    </div>
+                    <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Exponent públic e
+                        <select id="selE" class="mt-1 w-full font-mono text-sm bg-white rounded-xl border border-slate-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none"></select>
+                        <span class="block mt-1 normal-case tracking-normal font-normal text-slate-500">Ha de ser primer amb φ(n). A la pràctica gairebé sempre és 65537.</span>
+                    </label>
+                    <p id="pqWarn" class="hidden text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">p i q han de ser diferents.</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 flex flex-col gap-6">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-5 h-5 text-indigo-600"></i>
+                        <h2 class="font-semibold text-slate-800 text-sm">Els càlculs, pas a pas</h2>
+                    </div>
+                    <ol id="keySteps" class="p-5 flex flex-col gap-3 text-sm"></ol>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
+                        <div class="flex items-center gap-2 text-emerald-800 font-semibold"><i data-lucide="lock-open" class="w-5 h-5"></i>Clau pública</div>
+                        <div id="pubKey" class="mt-2 font-mono text-xl font-semibold text-emerald-900"></div>
+                        <p class="mt-1 text-xs text-emerald-800">Biel la publica: la pot tenir tothom, també l'Eva.</p>
+                    </div>
+                    <div class="rounded-2xl border-2 border-rose-200 bg-rose-50 p-4">
+                        <div class="flex items-center gap-2 text-rose-800 font-semibold"><i data-lucide="key" class="w-5 h-5"></i>Clau privada</div>
+                        <div id="privKey" class="mt-2 font-mono text-xl font-semibold text-rose-900"></div>
+                        <p class="mt-1 text-xs text-rose-800">Només la té Biel. Mai surt del seu ordinador.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. XIFRAR -->
+        <section id="panel-encrypt" class="panel hidden flex-col gap-6" role="tabpanel">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="mail" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Anna envia un missatge secret a Biel</h2>
+                </div>
+                <div class="p-5 flex flex-col gap-4">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input id="msgIn" maxlength="40" value="Hola Biel! Ens veiem a les 5."
+                            class="flex-1 px-3 py-3 font-mono text-sm bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none" aria-label="Missatge d'Anna">
+                        <button id="btnSend" class="inline-flex justify-center items-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm">
+                            <i data-lucide="send" class="w-4 h-4"></i>Xifra i envia
+                        </button>
+                    </div>
+
+                    <!-- Flux -->
+                    <div class="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_1fr] gap-3 items-stretch">
+                        <div class="rounded-xl border border-sky-200 bg-sky-50 p-3">
+                            <div class="flex items-center gap-2 text-sky-800 text-sm font-semibold"><i data-lucide="user" class="w-4 h-4"></i>Anna</div>
+                            <p class="mt-1 text-xs text-sky-900">Xifra amb la <span class="chip pub"><i data-lucide="lock-open" class="w-3 h-3"></i>pública de Biel</span></p>
+                            <p class="mt-2 font-mono text-xs text-sky-900">c = m<sup>e</sup> mod n</p>
+                        </div>
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                            <div class="flex items-center gap-2 text-amber-800 text-sm font-semibold"><i data-lucide="eye" class="w-4 h-4"></i>Canal (Eva escolta)</div>
+                            <div class="relative h-7 mt-2 rounded-full bg-amber-100 overflow-hidden" aria-hidden="true">
+                                <div class="absolute inset-y-0 left-3 right-3 my-auto h-0.5 bg-amber-300"></div>
+                                <div id="packet" class="absolute top-0 w-7 h-7 rounded-full bg-amber-500 text-white grid place-items-center" style="left:0"><i data-lucide="lock" class="w-3.5 h-3.5"></i></div>
+                            </div>
+                            <p class="mt-2 text-xs text-amber-900">Pel canal només viatgen números. L'Eva els veu tots.</p>
+                        </div>
+                        <div class="rounded-xl border border-violet-200 bg-violet-50 p-3">
+                            <div class="flex items-center gap-2 text-violet-800 text-sm font-semibold"><i data-lucide="user" class="w-4 h-4"></i>Biel</div>
+                            <p class="mt-1 text-xs text-violet-900">Desxifra amb la seva <span class="chip priv"><i data-lucide="key" class="w-3 h-3"></i>privada</span></p>
+                            <p class="mt-2 font-mono text-xs text-violet-900">m = c<sup>d</sup> mod n</p>
+                        </div>
+                    </div>
+
+                    <!-- Resultats -->
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="rounded-xl border border-slate-200 p-3">
+                            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">El que viatja pel canal</div>
+                            <div id="cipherStrip" class="num-strip mt-2 font-mono text-sm text-slate-800"></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+                                <div class="text-xs font-semibold text-amber-800 uppercase tracking-wider">L'Eva prova la clau pública</div>
+                                <div id="evaText" class="mt-2 font-mono text-base text-amber-900 break-all"></div>
+                                <p class="mt-1 text-xs text-amber-800">Amb la pública es xifra, però no es desxifra: surt brossa.</p>
+                            </div>
+                            <div class="rounded-xl border border-violet-200 bg-violet-50/60 p-3">
+                                <div class="text-xs font-semibold text-violet-800 uppercase tracking-wider">Biel desxifra amb la privada</div>
+                                <div id="bielText" class="mt-2 font-mono text-base text-violet-900 break-all"></div>
+                                <p class="mt-1 text-xs text-violet-800">Recupera exactament el missatge original.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="table" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Byte a byte</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="text-xs text-slate-500 uppercase tracking-wider bg-slate-50">
+                            <tr>
+                                <th class="text-left font-semibold px-4 py-2">Caràcter</th>
+                                <th class="text-right font-semibold px-4 py-2">m (byte)</th>
+                                <th class="text-right font-semibold px-4 py-2 text-emerald-700">c = m<sup>e</sup> mod n</th>
+                                <th class="text-right font-semibold px-4 py-2 text-amber-700">c<sup>e</sup> mod n (Eva)</th>
+                                <th class="text-right font-semibold px-4 py-2 text-rose-700">c<sup>d</sup> mod n (Biel)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="byteRows" class="divide-y divide-slate-100 font-mono"></tbody>
+                    </table>
+                </div>
+                <p class="px-4 pt-3 text-xs text-amber-800"><strong>Fixa-t'hi:</strong> la mateixa lletra sempre dona el mateix número (mira els espais). Així l'Eva podria endevinar el text per freqüències, com en un xifratge per substitució.</p>
+                <p class="px-4 pb-3 pt-1 text-xs text-slate-500">Aquí es xifra cada byte per separat perquè es vegi el càlcul. Per evitar-ho, els sistemes reals xifren blocs grans amb farciment aleatori (OAEP), i normalment fan servir RSA només per enviar una clau simètrica (AES) que xifra la resta.</p>
+            </div>
+        </section>
+
+        <!-- 3. SIGNAR -->
+        <section id="panel-sign" class="panel hidden grid-cols-1 lg:grid-cols-2 gap-6" role="tabpanel">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="pen-line" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Biel signa un avís</h2>
+                </div>
+                <div class="p-5 flex flex-col gap-4">
+                    <p class="text-sm text-slate-600">Ara fem servir les claus al revés: Biel <strong>signa amb la privada</strong> i qualsevol pot <strong>comprovar-ho amb la pública</strong>. Així se sap que el missatge és seu i que ningú l'ha canviat.</p>
+                    <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Missatge original de Biel
+                        <input id="signIn" maxlength="40" value="Demà no hi ha classe."
+                            class="mt-1 w-full px-3 py-3 font-mono text-sm normal-case tracking-normal font-normal bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none">
+                    </label>
+                    <ol class="flex flex-col gap-2 text-sm">
+                        <li class="flex gap-2"><span class="w-5 h-5 shrink-0 rounded-full bg-indigo-100 text-indigo-700 grid place-items-center text-xs font-bold">1</span><span>Calcula el resum (hash) del missatge: <span id="hOrig" class="chip border-slate-200 bg-slate-50"></span></span></li>
+                        <li class="flex gap-2"><span class="w-5 h-5 shrink-0 rounded-full bg-indigo-100 text-indigo-700 grid place-items-center text-xs font-bold">2</span><span>Xifra el resum amb la seva clau privada: <span id="sigCalc" class="font-mono text-xs"></span></span></li>
+                        <li class="flex gap-2"><span class="w-5 h-5 shrink-0 rounded-full bg-indigo-100 text-indigo-700 grid place-items-center text-xs font-bold">3</span><span>Envia el missatge + la signatura <span id="sigVal" class="chip priv"></span></span></li>
+                    </ol>
+                    <p class="text-xs text-slate-500">El resum d'aquest simulador és una funció de joguina. A la realitat es fa servir SHA-256, on és pràcticament impossible trobar dos missatges amb el mateix resum.</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="badge-check" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Anna comprova la signatura</h2>
+                </div>
+                <div class="p-5 flex flex-col gap-4">
+                    <label class="text-xs font-semibold text-slate-600 uppercase tracking-wider">Missatge que arriba a Anna
+                        <input id="signRecv" maxlength="40"
+                            class="mt-1 w-full px-3 py-3 font-mono text-sm normal-case tracking-normal font-normal bg-white rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none">
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        <button id="btnTamper" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg"><i data-lucide="eye" class="w-4 h-4"></i>L'Eva canvia el missatge</button>
+                        <button id="btnRestore" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>Missatge original</button>
+                    </div>
+                    <ol class="flex flex-col gap-2 text-sm">
+                        <li class="flex gap-2"><span class="w-5 h-5 shrink-0 rounded-full bg-sky-100 text-sky-700 grid place-items-center text-xs font-bold">1</span><span>Resum del missatge rebut: <span id="hRecv" class="chip border-slate-200 bg-slate-50"></span></span></li>
+                        <li class="flex gap-2"><span class="w-5 h-5 shrink-0 rounded-full bg-sky-100 text-sky-700 grid place-items-center text-xs font-bold">2</span><span>Obre la signatura amb la clau pública de Biel: <span id="verCalc" class="font-mono text-xs"></span></span></li>
+                        <li class="flex gap-2"><span class="w-5 h-5 shrink-0 rounded-full bg-sky-100 text-sky-700 grid place-items-center text-xs font-bold">3</span><span>Compara els dos resums.</span></li>
+                    </ol>
+                    <div id="verdict" class="rounded-xl border-2 p-4 flex gap-3 items-start"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. TRENCAR -->
+        <section id="panel-break" class="panel hidden grid-cols-1 lg:grid-cols-2 gap-6" role="tabpanel">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="hammer" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">L'Eva intenta aconseguir la clau privada</h2>
+                </div>
+                <div class="p-5 flex flex-col gap-4">
+                    <p class="text-sm text-slate-600">L'Eva coneix <span id="evaKnows" class="chip pub"></span>. Per calcular d necessita φ(n), i per a això ha de descompondre n en els seus dos primers p i q. Ho prova dividint n per 2, 3, 5, 7…</p>
+                    <button id="btnFactor" class="self-start inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm"><i data-lucide="zap" class="w-4 h-4"></i>Factoritza n</button>
+                    <div class="bg-slate-900 rounded-xl p-4 min-h-[9rem]">
+                        <pre id="factorLog" class="font-mono text-xs text-emerald-400 whitespace-pre-wrap leading-relaxed">// Prem «Factoritza n» per veure l'atac...</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                    <i data-lucide="shield" class="w-5 h-5 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm">Per què a la vida real és segur?</h2>
+                </div>
+                <div class="p-5 flex flex-col gap-4 text-sm text-slate-700">
+                    <p>Multiplicar dos primers és instantani; trobar-los a partir del producte és molt difícil quan són grans. Tota la seguretat de RSA es basa en aquesta diferència.</p>
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-sm">
+                            <thead class="text-xs text-slate-500 uppercase tracking-wider bg-slate-50">
+                                <tr><th class="text-left font-semibold px-3 py-2">Mida de n</th><th class="text-left font-semibold px-3 py-2">Xifres</th><th class="text-left font-semibold px-3 py-2">Situació</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr><td class="px-3 py-2 font-mono" id="toyBits"></td><td class="px-3 py-2 font-mono" id="toyDigits"></td><td class="px-3 py-2">Aquest simulador: es trenca en mil·lisegons.</td></tr>
+                                <tr><td class="px-3 py-2 font-mono">512 bits</td><td class="px-3 py-2 font-mono">155</td><td class="px-3 py-2">Factoritzada el 1999 amb centenars d'ordinadors durant mesos. Avui, insegura.</td></tr>
+                                <tr><td class="px-3 py-2 font-mono">829 bits</td><td class="px-3 py-2 font-mono">250</td><td class="px-3 py-2">El rècord públic (2020): milers d'anys de CPU.</td></tr>
+                                <tr class="bg-emerald-50"><td class="px-3 py-2 font-mono">2048 bits</td><td class="px-3 py-2 font-mono">617</td><td class="px-3 py-2">Mida mínima recomanada avui. Fora de l'abast dels ordinadors actuals.</td></tr>
+                                <tr class="bg-emerald-50"><td class="px-3 py-2 font-mono">4096 bits</td><td class="px-3 py-2 font-mono">1233</td><td class="px-3 py-2">Més marge, a canvi de ser més lenta.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-slate-500">Un ordinador quàntic prou gran podria factoritzar n amb l'algorisme de Shor. Per això ja s'estan adoptant algorismes postquàntics (com ML-KEM) que no depenen d'aquest problema.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Peu de pàgina -->
+    <footer class="border-t border-slate-200 bg-white mt-6">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <p class="text-center sm:text-left">
+                © 2026 <a href="https://surikata3k.com/#apps" class="font-medium text-slate-700 hover:text-indigo-600">web-apps</a> ·
+                Llicència <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca" rel="license" target="_blank" class="font-medium text-slate-700 hover:text-indigo-600">CC BY-NC-SA 4.0</a>
+            </p>
+            <div class="flex items-center gap-4">
+                <a href="https://surikata3k.com/#apps" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Totes les apps</a>
+                <a href="https://surikata3k.com" class="inline-flex items-center gap-1 hover:text-indigo-600"><i data-lucide="globe" class="w-3.5 h-3.5"></i> surikata3k.com</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const PRIMES = [17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
+        const E_CANDIDATES = [3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113];
+        const enc = new TextEncoder();
+        const dec = new TextDecoder();
+        const K = {};   // p, q, n, phi, e, d
+
+        // ---------- Aritmètica ----------
+        const gcd = (a, b) => { while (b) [a, b] = [b, a % b]; return a; };
+        function modpow(b, e, m) {           // tots els valors < n² < 2^27: Number és prou
+            let r = 1; b %= m;
+            while (e > 0) { if (e & 1) r = (r * b) % m; b = (b * b) % m; e >>= 1; }
+            return r;
+        }
+        function modinv(a, m) {
+            let [r0, r1, s0, s1] = [m, a, 0, 1];
+            while (r1) { const q = Math.floor(r0 / r1);[r0, r1] = [r1, r0 - q * r1];[s0, s1] = [s1, s0 - q * s1]; }
+            return ((s0 % m) + m) % m;
+        }
+        // Resum de joguina: polinomi mòdul n (el real seria SHA-256)
+        function toyHash(str, n) { let h = 7; for (const b of enc.encode(str)) h = (h * 31 + b) % n; return h; }
+        const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const show = ch => ch === ' ' ? '␣' : esc(ch);
+
+        // ---------- 1. Claus ----------
+        function fillSelect(sel, values, current) {
+            sel.innerHTML = values.map(v => `<option value="${v}"${v === current ? ' selected' : ''}>${v}</option>`).join('');
+        }
+        function validEs(phi) { return E_CANDIDATES.filter(e => e < phi && gcd(e, phi) === 1); }
+
+        function computeKeys() {
+            const p = +$('selP').value, q = +$('selQ').value;
+            $('pqWarn').classList.toggle('hidden', p !== q);
+            if (p === q) return false;
+            const n = p * q, phi = (p - 1) * (q - 1);
+            const es = validEs(phi);
+            let e = +$('selE').value;
+            if (!es.includes(e)) e = es.includes(17) ? 17 : es[0];
+            fillSelect($('selE'), es, e);
+            const d = modinv(e, phi);
+            Object.assign(K, { p, q, n, phi, e, d });
+            renderKeys();
+            return true;
+        }
+
+        function renderKeys() {
+            const { p, q, n, phi, e, d } = K;
+            const k = (e * d - 1) / phi;
+            const step = (i, title, body) => `<li class="flex gap-3"><span class="w-6 h-6 shrink-0 rounded-full bg-indigo-100 text-indigo-700 grid place-items-center text-xs font-bold">${i}</span><div><div class="font-semibold text-slate-800">${title}</div><div class="font-mono text-slate-600 mt-0.5">${body}</div></div></li>`;
+            $('keySteps').innerHTML =
+                step(1, 'Mòdul n (públic)', `n = p · q = ${p} · ${q} = <strong class="text-slate-900">${n}</strong>`) +
+                step(2, 'Funció φ de Euler (secreta)', `φ(n) = (p−1)(q−1) = ${p - 1} · ${q - 1} = <strong class="text-slate-900">${phi}</strong>`) +
+                step(3, 'Exponent públic e', `mcd(${e}, ${phi}) = 1 &nbsp;→&nbsp; e = <strong class="text-emerald-700">${e}</strong>`) +
+                step(4, 'Exponent privat d', `d tal que e · d ≡ 1 (mod φ) &nbsp;→&nbsp; d = <strong class="text-rose-700">${d}</strong>`) +
+                step(5, 'Comprovació', `${e} · ${d} = ${e * d} = ${k} · ${phi} + 1 ✓`);
+            $('pubKey').textContent = `(e, n) = (${e}, ${n})`;
+            $('privKey').textContent = `(d, n) = (${d}, ${n})`;
+            $('evaKnows').innerHTML = `<i data-lucide="lock-open" class="w-3 h-3"></i>e = ${e}, n = ${n}`;
+            const bits = Math.ceil(Math.log2(n + 1));
+            $('toyBits').textContent = `${bits} bits`;
+            $('toyDigits').textContent = String(n).length;
+            $('factorLog').textContent = '// Prem «Factoritza n» per veure l\'atac...';
+            renderEncrypt(); renderSign();
+            lucide.createIcons();
+        }
+
+        function randomKeys() {
+            const pick = () => PRIMES[Math.floor(Math.random() * PRIMES.length)];
+            let p = pick(), q = pick();
+            while (q === p) q = pick();
+            $('selP').value = p; $('selQ').value = q;
+            const es = validEs((p - 1) * (q - 1));
+            fillSelect($('selE'), es, es[Math.floor(Math.random() * Math.min(es.length, 8))]);
+            computeKeys();
+        }
+
+        // ---------- 2. Xifrar ----------
+        function renderEncrypt() {
+            const { n, e, d } = K;
+            const bytes = [...enc.encode($('msgIn').value)];
+            const c = bytes.map(m => modpow(m, e, n));
+            const eva = c.map(x => modpow(x, e, n));
+            const back = c.map(x => modpow(x, d, n));
+            $('cipherStrip').innerHTML = c.length ? c.map(x => `<span>${x}</span>`).join('') : '<span class="text-slate-400">—</span>';
+            // Els valors de l'Eva no són bytes vàlids: els mostrem com a caràcters imprimibles qualssevol
+            $('evaText').textContent = eva.map(v => String.fromCharCode(33 + (v % 94))).join('') || '—';
+            $('bielText').textContent = dec.decode(new Uint8Array(back)) || '—';
+            // Taula: un caràcter pot ocupar diversos bytes (UTF-8)
+            const chars = [...$('msgIn').value];
+            let i = 0, rows = '';
+            for (const ch of chars) {
+                const len = enc.encode(ch).length;
+                for (let j = 0; j < len; j++, i++) {
+                    rows += `<tr>
+                        <td class="px-4 py-1.5">${j === 0 ? show(ch) : '<span class="text-slate-300">↳</span>'}</td>
+                        <td class="px-4 py-1.5 text-right">${bytes[i]}</td>
+                        <td class="px-4 py-1.5 text-right text-emerald-700 font-semibold">${c[i]}</td>
+                        <td class="px-4 py-1.5 text-right text-amber-700">${eva[i]}</td>
+                        <td class="px-4 py-1.5 text-right text-rose-700">${back[i]}</td></tr>`;
+                }
+            }
+            $('byteRows').innerHTML = rows;
+        }
+
+        function animateSend() {
+            const pk = $('packet');
+            pk.classList.remove('packet'); void pk.offsetWidth; pk.classList.add('packet');
+            renderEncrypt();
+        }
+
+        // ---------- 3. Signar ----------
+        let signTouched = false;
+        function renderSign() {
+            const { n, e, d } = K;
+            const orig = $('signIn').value;
+            if (!signTouched) $('signRecv').value = orig;
+            const recv = $('signRecv').value;
+            const h = toyHash(orig, n);
+            const s = modpow(h, d, n);
+            const h2 = toyHash(recv, n);
+            const v = modpow(s, e, n);
+            $('hOrig').textContent = `h = ${h}`;
+            $('sigCalc').innerHTML = `s = h<sup>d</sup> mod n = ${h}<sup>${d}</sup> mod ${n} = <strong class="text-rose-700">${s}</strong>`;
+            $('sigVal').innerHTML = `<i data-lucide="pen-line" class="w-3 h-3"></i>s = ${s}`;
+            $('hRecv').textContent = `h' = ${h2}`;
+            $('verCalc').innerHTML = `s<sup>e</sup> mod n = ${s}<sup>${e}</sup> mod ${n} = <strong class="text-emerald-700">${v}</strong>`;
+            const ok = v === h2;
+            const same = recv === orig;
+            const box = $('verdict');
+            box.className = 'rounded-xl border-2 p-4 flex gap-3 items-start ' + (ok ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-rose-300 bg-rose-50 text-rose-900');
+            box.innerHTML = ok
+                ? `<i data-lucide="circle-check" class="w-6 h-6 shrink-0 text-emerald-600"></i><div><div class="font-semibold">Signatura vàlida (${v} = ${h2})</div><div class="text-sm mt-0.5">${same ? 'El missatge és de Biel i ningú l\'ha modificat.' : 'Casualitat: el resum de joguina ha coincidit (col·lisió). Amb SHA-256 això no passaria.'}</div></div>`
+                : `<i data-lucide="circle-x" class="w-6 h-6 shrink-0 text-rose-600"></i><div><div class="font-semibold">Signatura NO vàlida (${v} ≠ ${h2})</div><div class="text-sm mt-0.5">El missatge s'ha modificat pel camí. L'Eva no pot fer una signatura nova perquè no té la clau privada de Biel.</div></div>`;
+            lucide.createIcons();
+        }
+
+        // ---------- 4. Trencar ----------
+        function factorAttack() {
+            const { n, e } = K;
+            const t0 = performance.now();
+            let tries = 0, f = 0;
+            const log = [`$ factoritza ${n}`];
+            for (let i = 2; i * i <= n; i++) {
+                tries++;
+                if (n % i === 0) { f = i; break; }
+                if (tries <= 6) log.push(`  ${n} / ${i} → residu ${n % i}`);
+                if (tries === 7) log.push('  ...');
+            }
+            const ms = (performance.now() - t0).toFixed(3);
+            const p = f, q = n / f, phi = (p - 1) * (q - 1), d = modinv(e, phi);
+            log.push(`  ${n} / ${p} → residu 0  ✔`, '',
+                `Trobat en ${tries} intents (${ms} ms):`,
+                `  n = ${p} · ${q}`,
+                `  φ(n) = ${p - 1} · ${q - 1} = ${phi}`,
+                `  d = ${e}⁻¹ mod ${phi} = ${d}`, '',
+                `>> L'Eva ja té la clau privada (${d}, ${n}).`,
+                `>> Amb claus petites, RSA no protegeix res.`);
+            $('factorLog').textContent = log.join('\n');
+        }
+
+        // ---------- Pestanyes ----------
+        function selectTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name)));
+            document.querySelectorAll('.panel').forEach(p => {
+                const on = p.id === 'panel-' + name;
+                p.classList.toggle('hidden', !on);
+                p.classList.toggle(p.id === 'panel-encrypt' ? 'flex' : 'grid', on);
+            });
+        }
+
+        // ---------- Inici ----------
+        fillSelect($('selP'), PRIMES, 61);
+        fillSelect($('selQ'), PRIMES, 53);
+        fillSelect($('selE'), [17], 17);
+        ['selP', 'selQ', 'selE'].forEach(id => $(id).addEventListener('change', computeKeys));
+        $('btnNewKeys').addEventListener('click', randomKeys);
+        $('msgIn').addEventListener('input', renderEncrypt);
+        $('btnSend').addEventListener('click', animateSend);
+        $('signIn').addEventListener('input', () => { signTouched = false; renderSign(); });
+        $('signRecv').addEventListener('input', () => { signTouched = true; renderSign(); });
+        $('btnTamper').addEventListener('click', () => { $('signRecv').value = 'Demà hi ha examen.'; signTouched = true; renderSign(); });
+        $('btnRestore').addEventListener('click', () => { signTouched = false; renderSign(); });
+        $('btnFactor').addEventListener('click', factorAttack);
+        document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => selectTab(t.dataset.tab)));
+        computeKeys();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@
 **Petites aplicacions web que funcionen directament al navegador.**<br>
 Sense instal·lar res, sense servidor: obre-les i fes-les servir.
 
-[**▶ Obrir web-apps**](https://surikata3k.github.io/web-apps/)
+[**▶ Obrir les apps**](https://surikata3k.com/#apps)
 
 </div>
 
@@ -28,9 +28,11 @@ Sense instal·lar res, sense servidor: obre-les i fes-les servir.
   Comprova com de forta és una contrasenya.
 - **[🧮 Calculadora d'entropia](https://surikata3k.github.io/web-apps/password_calculator/)**<br>
   Combinacions possibles i entropia segons la longitud i el joc de caràcters.
+- **[🗝️ Simulador de clau asimètrica](https://surikata3k.github.io/web-apps/asymmetric_keys/)**<br>
+  Com funciona RSA pas a pas: genera claus, xifra, signa i intenta trencar-la.
 
 ---
 
-<sub>Fet amb HTML, CSS i JavaScript · Cada app és a la seva carpeta (<code>passgen/</code>, <code>password_generator/</code>…) i la pàgina d'inici és <code>index.html</code> + <code>styles.css</code>.</sub>
+<sub>Fet amb HTML, CSS i JavaScript · Cada app és a la seva carpeta (<code>passgen/</code>, <code>password_generator/</code>…). El catàleg és a <a href="https://surikata3k.com/#apps">surikata3k.com</a>; <code>index.html</code> només hi redirigeix.</sub>
 
 <sub>© 2026 <a href="https://surikata3k.com">surikata3k</a> · Llicència <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.ca">CC BY-NC-SA 4.0</a> (vegeu <a href="LICENSE">LICENSE</a>).</sub>
