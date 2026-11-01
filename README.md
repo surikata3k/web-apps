@@ -29,7 +29,7 @@ Sense instal·lar res, sense servidor: obre-les i fes-les servir.
 - **[🧮 Calculadora d'entropia](https://surikata3k.github.io/web-apps/password_calculator/)**<br>
   Combinacions possibles i entropia segons la longitud i el joc de caràcters.
 - **[🗝️ Simulador de clau asimètrica](https://surikata3k.github.io/web-apps/asymmetric_keys/)**<br>
-  Com funciona RSA pas a pas: genera claus, xifra, signa i intenta trencar-la.
+  Cadenats, claus i segells: entén la criptografia de clau pública jugant (enviar secrets, signar i descobrir un impostor).
 
 ---
 
